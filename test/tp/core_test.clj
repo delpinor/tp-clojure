@@ -24,4 +24,13 @@
 
 (deftest actualizar-valor-en-pos-test
       (testing "Actualizar valor en posición"
-        (is (= (actualizar-valor-en-pos '(1 2 3) 0 3) '(3 2 3))))) 
+        (is (= (actualizar-valor-en-pos '(1 2 3) 0 3) '(3 2 3)))))
+
+
+(deftest buscar-test
+   (testing "Buscar cuando el elemento existe"
+     (is (= (buscar 'c '(a 1 b 2 c 3 d 4 e 5)) 3)))
+  (testing "Buscar cuando el elemento no existe"
+    (is (= (buscar 'g '(a 1 b 2 c 3 d 4 e 5)) (generar-mensaje-error :unbound-variable 'g))))
+)
+ 

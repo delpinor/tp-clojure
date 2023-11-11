@@ -600,11 +600,14 @@
 ; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
 ; 3
 ; user=> (buscar 'f '(a 1 b 2 c 3 d 4 e 5))
-; (;ERROR: unbound variable: f)
+; (list ;ERROR: unbound variable: f)
 (defn buscar
   "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
    y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
-  [])
+  [clave ambiente] (let [indice (.indexOf ambiente clave)]
+                     (cond
+                       (= indice -1) (generar-mensaje-error :unbound-variable clave) 
+                       :else (get (vec ambiente) (inc indice)))))
 
 ; user=> (error? (list (symbol ";ERROR:") 'mal 'hecho))
 ; true
