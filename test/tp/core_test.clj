@@ -10,3 +10,18 @@
     (is (= 0 (verificar-parentesis "(hola '(mundo) )"))))
   (testing "Más cantidad de paréntesis abiertos"
     (is (= 1 (verificar-parentesis "(hola 'mundo")))))
+
+
+(deftest  actualizar-amb-test
+  (testing "Actualizar con parámetros válidos"
+    (is (= (actualizar-amb '(a 1 b 2 c 3) 'd 4) '(a 1 b 2 c 3 d 4)))
+    (is (= (actualizar-amb '(a 1 b 2) 'd 4) '(a 1 b 2 d 4)))
+    (is (= (actualizar-amb () 'b 7) '(b 7))))
+
+  (testing "Actualizar con parámeros inválidos"
+    (is (= (actualizar-amb '(a 1 b 2 c 3) 'b (list (symbol ";ERROR:") 'mal 'hecho)) '(a 1 b 2 c 3)))))
+
+
+(deftest actualizar-valor-en-pos-test
+      (testing "Actualizar valor en posición"
+        (is (= (actualizar-valor-en-pos '(1 2 3) 0 3) '(3 2 3))))) 

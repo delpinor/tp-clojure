@@ -9,6 +9,7 @@
   ([x] (do (prn x) x))
   ([msg x] (do (print msg) (print ": ") (prn x) x)))
 
+
 ; Funciones principales
 (declare repl)
 (declare evaluar)
@@ -74,6 +75,9 @@
 (declare aplicar-lambda-multiple)
 (declare evaluar-clausulas-de-cond)
 (declare evaluar-secuencia-en-cond)
+
+;Funcionaes adicionales
+(declare actualizar-valor-en-pos)
 
 
 (defn repl
@@ -536,7 +540,13 @@
   "Lee una cadena desde la terminal/consola. Si contiene parentesis de menos al presionar Enter/Intro,
   se considera que la cadena ingresada es una subcadena y el ingreso continua. De lo contrario, se la
   devuelve completa (si corresponde, advirtiendo previamente que hay parentesis de mas)."
-  [])
+  ([]
+   (loop []
+     (let [entrada (str (read))]
+       (cond
+         (= (verificar-parentesis entrada) 0) entrada
+         :else (recur)))))
+  )
 
 ; user=> (verificar-parentesis "(hola 'mundo")
 ; 1
@@ -548,6 +558,7 @@
 ; -1
 ; user=> (verificar-parentesis "(hola '(mundo) )")
 ; 0
+
 
 (defn verificar-parentesis
   "Cuenta los parentesis en una cadena, sumando 1 si `(`, restando 1 si `)`. Si el contador se hace negativo, para y retorna -1."
@@ -571,7 +582,20 @@
 (defn actualizar-amb
   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza la nueva informacion."
-  [])
+  [ambiente clave valor] (let [indice (.indexOf ambiente clave)]
+                           (cond
+                             (= indice -1) (concat ambiente (list clave valor))
+                             (seq? valor) ambiente
+                             :else (actualizar-valor-en-pos ambiente (inc indice) valor))))
+
+
+(defn actualizar-valor-en-pos
+  "Asigna nuevo valor en una posicion de una lista."
+  [lista, pos, valor]
+  (->>
+   (assoc (vec lista) pos valor)
+   (seq)))
+
 
 ; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
 ; 3
