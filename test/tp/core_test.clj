@@ -33,4 +33,14 @@
   (testing "Buscar cuando el elemento no existe"
     (is (= (buscar 'g '(a 1 b 2 c 3 d 4 e 5)) (generar-mensaje-error :unbound-variable 'g))))
 )
+
+(deftest error?-test
+  (testing "Cuando el primer elmento es válido"
+    (is (true? (error? (list (symbol ";ERROR:") 'mal 'hecho))))
+    (is (true? (error? (list (symbol ";ERROR:") 'mal 'hecho))))
+    )
+  (testing "Cuando el primer elemento no es válido"
+         (is (false? (error? (list 'mal 'hecho))))
+    )
+  ) 
  

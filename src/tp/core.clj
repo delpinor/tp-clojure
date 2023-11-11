@@ -617,7 +617,12 @@
 ; true
 (defn error?
   "Devuelve true o false, segun sea o no el arg. una lista con `;ERROR:` o `;WARNING:` como primer elemento."
-  [])
+  [lista]
+  (let [tipo-error (first lista)]
+    (cond
+      (= tipo-error (symbol ";ERROR:")) true
+      (= tipo-error (symbol ";WARNING:")) true
+      :else false)))
 
 ; user=> (proteger-bool-en-str "(or #f #t)")
 ; "(or %f %t)"
