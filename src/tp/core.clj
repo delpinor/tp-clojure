@@ -1,5 +1,6 @@
 (ns tp.core
-  (:gen-class))
+  (:gen-class) 
+  (:require [clojure.string :as str]))
 
 (require '[clojure.string :as st :refer [blank? starts-with? ends-with? lower-case]]
          '[clojure.java.io :refer [delete-file reader]]
@@ -632,7 +633,8 @@
 ; ""
 (defn proteger-bool-en-str
   "Cambia, en una cadena, #t por %t y #f por %f, para poder aplicarle read-string."
-  [])
+  [cadena]
+  (clojure.string/replace (clojure.string/replace cadena #"#t" "%t") #"#f" "%f"))
 
 ; user=> (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)")))
 ; (and (or #F #f #t #T) #T)

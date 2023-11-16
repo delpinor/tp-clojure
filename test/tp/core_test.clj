@@ -44,3 +44,22 @@
     )
   ) 
  
+
+(deftest proteger-bool-en-str-test
+      (testing "Cuando hay valores a reemplazar"
+        (is (= (proteger-bool-en-str "(or #f #t)") "(or %f %t)"))
+        (is (= (proteger-bool-en-str "(and (or #f #t) #t)") "(and (or %f %t) %t)"))
+        )
+  (testing "Cuando hay una cadena vacia o un solo #f"
+    (is (= (proteger-bool-en-str "") ""))
+    (is (= (proteger-bool-en-str "(or #f #f)") "(or %f %f)"))
+    )
+  ) 
+
+
+; user=> (proteger-bool-en-str "(or #f #t)")
+; "(or %f %t)"
+; user=> (proteger-bool-en-str "(and (or #f #t) #t)")
+; "(and (or %f %t) %t)"
+; user=> (proteger-bool-en-str "")
+; ""
