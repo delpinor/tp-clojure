@@ -80,6 +80,7 @@
 ;Funcionaes adicionales
 (declare actualizar-valor-en-pos)
 (declare concatenar-si)
+(declare menor-o-igual-a)
 
 
 (defn repl
@@ -692,9 +693,26 @@
 ; #t
 ; user=> (fnc-equal? '(1 1 2 1))
 ; #f
+
+(defn menor-o-igual-a
+  "Si la cantidad es igual a 1 devuelve #t caso contrario #f."
+  [referencia, analizado]
+  (if (>= referencia analizado) (symbol "#t") (symbol "#f"))
+  )
+
 (defn fnc-equal?
   "Compara elementos. Si son iguales, devuelve #t. Si no, #f."
-  [])
+  [lista]
+  (->>
+   (apply str lista)
+   (clojure.string/lower-case)
+   (distinct)
+   (count)
+   ((partial menor-o-igual-a 1))
+   )
+  )
+
+
 
 ; user=> (fnc-read ())
 ; (hola

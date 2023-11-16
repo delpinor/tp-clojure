@@ -81,3 +81,20 @@
     (is (= (fnc-append '(5 (4 5) (6 7))) (generar-mensaje-error :wrong-type-arg 'append 5)))
     (is (= (fnc-append '((1 2) A (4 5) (6 7))) (generar-mensaje-error :wrong-type-arg 'append 'A))))
   )
+
+
+(deftest menor-o-igual-a-test
+  (testing "Devuelve #t o #f"
+    (is (= (menor-o-igual-a 4 3) (symbol "#t")))
+    (is (= (menor-o-igual-a 4 6) (symbol "#f")))))
+
+(deftest fnc-equal?-test
+  (testing "Cuando son iguales"
+    (is (= (fnc-equal? ()) (symbol "#t")))
+    (is (= (fnc-equal? '(A)) (symbol "#t")))
+    (is (= (fnc-equal? '(A a)) (symbol "#t")))
+    (is (= (fnc-equal? '(A a A a)) (symbol "#t")))
+    (is (= (fnc-equal? '(1 1 1 1)) (symbol "#t"))))
+  (testing "Cuando son diferentes"
+    (is (= (fnc-equal? '(1 1 2 1)) (symbol "#f")))
+    (is (= (fnc-equal? '(a b c)) (symbol "#f"))))) 
