@@ -69,3 +69,15 @@
     (is (= (restaurar-bool (read-string "(and (or %F %f %t %T) %T)")) "(and (or #F #f #t #T) #T)"))
   )
   )
+
+
+(deftest fnc-append-test
+  (testing "Con listas validdas"
+    (is (= (fnc-append '((1 2) (3) (4 5) (6 7))) '(1 2 3 4 5 6 7)))
+    (is (= (fnc-append '((1 2) (7))) '(1 2 7))))
+
+  (testing "Con listas invalidas"
+    (is (= (fnc-append '((1 2) 3 (4 5) (6 7))) (generar-mensaje-error :wrong-type-arg 'append 3)))
+    (is (= (fnc-append '(5 (4 5) (6 7))) (generar-mensaje-error :wrong-type-arg 'append 5)))
+    (is (= (fnc-append '((1 2) A (4 5) (6 7))) (generar-mensaje-error :wrong-type-arg 'append 'A))))
+  )

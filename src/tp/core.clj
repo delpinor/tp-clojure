@@ -79,6 +79,7 @@
 
 ;Funcionaes adicionales
 (declare actualizar-valor-en-pos)
+(declare concatenar-si)
 
 
 (defn repl
@@ -663,7 +664,17 @@
 ; (;ERROR: append: Wrong type in arg A)
 (defn fnc-append
   "Devuelve el resultado de fusionar listas."
-  [])
+  [lista]
+  (reduce concatenar-si lista)
+   )
+
+(defn concatenar-si 
+  "Concatena dos elementos si son listas, caso contrario muestra un mensaje de error."
+  [x, y]
+  (cond
+    (not (seq? y)) (reduced (generar-mensaje-error :wrong-type-arg 'append y))
+    (not (seq? x)) (reduced (generar-mensaje-error :wrong-type-arg 'append x))
+    :else (concat x y)))
 
 ; user=> (fnc-equal? ())
 ; #t
