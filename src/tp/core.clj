@@ -634,7 +634,12 @@
 (defn proteger-bool-en-str
   "Cambia, en una cadena, #t por %t y #f por %f, para poder aplicarle read-string."
   [cadena]
-  (clojure.string/replace (clojure.string/replace cadena #"#t" "%t") #"#f" "%f"))
+  (->
+   (clojure.string/replace cadena #"#t" "%t")
+   (clojure.string/replace #"#T" "%T")
+   (clojure.string/replace #"#f" "%f")
+   (clojure.string/replace #"#F" "%F"))
+  )
 
 ; user=> (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)")))
 ; (and (or #F #f #t #T) #T)
@@ -642,7 +647,13 @@
 ; (and (or #F #f #t #T) #T)
 (defn restaurar-bool
   "Cambia, en un codigo leido con read-string, %t por #t y %f por #f."
-  [])
+  [cadena]
+  (->
+   (clojure.string/replace cadena #"%t" "#t")
+   (clojure.string/replace #"%T" "#T")
+   (clojure.string/replace #"%f" "#f")
+   (clojure.string/replace #"%F" "#F")))
+
 
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
 ; (1 2 3 4 5 6 7)

@@ -57,9 +57,15 @@
   ) 
 
 
-; user=> (proteger-bool-en-str "(or #f #t)")
-; "(or %f %t)"
-; user=> (proteger-bool-en-str "(and (or #f #t) #t)")
-; "(and (or %f %t) %t)"
-; user=> (proteger-bool-en-str "")
-; ""
+(deftest restaurar-bool-test
+  (testing "Cuando no hay que reemplazar"
+    (is (= (restaurar-bool "") "")))
+  (testing "Cuando hay valores para reemplazar"
+    (is (= (restaurar-bool "(and (or #F #f #t #T) #T)") "(and (or #F #f #t #T) #T)"))
+    (is (= (restaurar-bool "(and (or %F %f %t %T) %T)") "(and (or #F #f #t #T) #T)"))
+    )
+  (testing "Usando read-string"
+    (is (= (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)"))) "(and (or #F #f #t #T) #T)"))
+    (is (= (restaurar-bool (read-string "(and (or %F %f %t %T) %T)")) "(and (or #F #f #t #T) #T)"))
+  )
+  )
