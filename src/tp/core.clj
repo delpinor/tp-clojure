@@ -833,11 +833,9 @@
   "Devuelve #t si los numeros de una lista estan en orden estrictamente creciente; si no, #f."
   [lista]
   (cond
-    (empty? lista) (symbol "#t")
-    (= (count lista) 1) (symbol "#t")
+    (empty? lista) (convertir-a-tf true)
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '< (primer-no-numero lista))
     :else (convertir-a-tf (apply < lista))))
-
 
 
 ; user=> (fnc-mayor ())
@@ -862,7 +860,15 @@
 ; (;ERROR: >: Wrong type in arg2 A)
 (defn fnc-mayor
   "Devuelve #t si los numeros de una lista estan en orden estrictamente decreciente; si no, #f."
-  [])
+  [lista]
+  (cond
+    (empty? lista) (convertir-a-tf true)
+    (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '> (primer-no-numero lista))
+    :else (convertir-a-tf (apply > lista))
+    )
+  )
+
+
 
 ; user=> (fnc-mayor-o-igual ())
 ; #t
