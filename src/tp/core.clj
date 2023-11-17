@@ -81,6 +81,7 @@
 (declare actualizar-valor-en-pos)
 (declare concatenar-si)
 (declare sumar-si)
+(declare restar-si)
 (declare menor-o-igual-a)
 
 
@@ -762,14 +763,11 @@
     (not (number? x)) (reduced (generar-mensaje-error :wrong-type-arg '+ x))
     :else (+ x y)))
 
-
 (defn fnc-sumar
   "Suma los elementos de una lista."
   [lista]
   (if (empty? lista) 0 (reduce sumar-si lista)) 
   )
-
-(fnc-sumar '(2 3 3 3))
 
 ; user=> (fnc-restar ())
 ; (;ERROR: -: Wrong number of args given)
@@ -787,9 +785,24 @@
 ; (;ERROR: -: Wrong type in arg2 A)
 ; user=> (fnc-restar '(3 4 A 6))
 ; (;ERROR: -: Wrong type in arg2 A)
+
+(defn restar-si
+  "Resta dos numeros, si no son numeros muestra un mensaje de error."
+  [x , y]
+  (cond
+    (not (number? y)) (reduced (generar-mensaje-error :wrong-type-arg '- y))
+    (not (number? x)) (reduced (generar-mensaje-error :wrong-type-arg '- x))
+    :else (- x y))
+  )
+
 (defn fnc-restar
   "Resta los elementos de un lista."
-  [])
+  [lista]
+  (cond
+    (empty? lista) (generar-mensaje-error :wrong-number-args-oper '-)
+    (= (count lista) 1) (- (first lista))
+    :else (reduce restar-si lista)))
+
 
 ; user=> (fnc-menor ())
 ; #t

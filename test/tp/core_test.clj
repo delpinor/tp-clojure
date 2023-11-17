@@ -118,19 +118,19 @@
          )
   ) 
 
-; user=> (fnc-sumar ())
-; 0
-; user=> (fnc-sumar '(3))
-; 3
-; user=> (fnc-sumar '(3 4))
-; 7
-; user=> (fnc-sumar '(3 4 5))
-; 12
-; user=> (fnc-sumar '(3 4 5 6))
-; 18
-; user=> (fnc-sumar '(A 4 5 6))
-; (;ERROR: +: Wrong type in arg1 A)
-; user=> (fnc-sumar '(3 A 5 6))
-; (;ERROR: +: Wrong type in arg2 A)
-; user=> (fnc-sumar '(3 4 A 6))
-; (;ERROR: +: Wrong type in arg2 A)
+(deftest restar-si-test
+  (testing "Numeros validos"
+    (is (= (restar-si 8 2) 6))))
+
+
+(deftest fnc-restar-test
+  (testing "Cuando es vacio"
+    (is (= (fnc-restar ()) (generar-mensaje-error :wrong-number-args-oper '-))))
+  (testing "Cuando es una resta valida"
+    (is (= (fnc-restar '(3)) -3))
+    (is (= (fnc-restar '(4 2)) 2)))
+  (testing "Cuando es una resta invalida"
+    (is (= (fnc-restar '(A 4 5 6)) (generar-mensaje-error :wrong-type-arg '- 'A)))
+    (is (= (fnc-restar '(4 5 B 6)) (generar-mensaje-error :wrong-type-arg '- 'B))))) 
+
+
