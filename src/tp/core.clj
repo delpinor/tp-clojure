@@ -80,6 +80,9 @@
 ;Funcionaes adicionales
 (declare actualizar-valor-en-pos)
 (declare concatenar-si)
+(declare primer-no-numero)
+(declare convertir-a-tf)
+(declare todos-numeros?)
 (declare sumar-si)
 (declare restar-si)
 (declare menor-o-igual-a)
@@ -824,9 +827,42 @@
 ; (;ERROR: <: Wrong type in arg2 A)
 ; user=> (fnc-menor '(1 2 A 4))
 ; (;ERROR: <: Wrong type in arg2 A)
+
+(defn primer-no-numero
+  "Devuelve el primer elemento no nulo en caso de existir. nil en caso contrario."
+  [lista]
+  (->>
+   (filter (comp not number?) lista)
+   (first)
+   ) 
+  )
+
+(defn convertir-a-tf[x]
+  (case x
+    true (symbol "#t")
+    false (symbol "#f")
+    )
+  )
+
+(defn todos-numeros?
+  "Devuelve verdadero si son todos numeros, falso caso contrario"
+  [lista]
+  (every? number? lista)
+  )
+
+
 (defn fnc-menor
   "Devuelve #t si los numeros de una lista estan en orden estrictamente creciente; si no, #f."
-  [])
+  [lista]
+  (cond
+    (empty? lista) (symbol "#t")
+    (= (count lista) 1) (symbol "#t")
+    (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '< (primer-no-numero lista))
+    :else (convertir-a-tf (apply < lista))
+    )
+  )
+
+
 
 ; user=> (fnc-mayor ())
 ; #t
