@@ -105,3 +105,32 @@
     (is (= (fnc-read '(1)) (generar-mensaje-error :io-ports-not-implemented 'read)))
     (is (= (fnc-read '(1 2 3)) (generar-mensaje-error :wrong-number-args-prim-proc 'read))))) 
 
+(deftest fnc-sumar-test
+  (testing "Cuando es vacio"
+    (is (= (fnc-sumar ()) 0)))
+  (testing "Cuando es una suma valida"
+    (is (= (fnc-sumar '(3)) 3))     
+    (is (= (fnc-sumar '(4 2)) 6))     
+    )
+  (testing "Cuando es una suma invalida"
+    (is (= (fnc-sumar '(A 4 5 6)) (generar-mensaje-error :wrong-type-arg '+ 'A)))
+    (is (= (fnc-sumar '(4 5 B 6)) (generar-mensaje-error :wrong-type-arg '+ 'B)))
+         )
+  ) 
+
+; user=> (fnc-sumar ())
+; 0
+; user=> (fnc-sumar '(3))
+; 3
+; user=> (fnc-sumar '(3 4))
+; 7
+; user=> (fnc-sumar '(3 4 5))
+; 12
+; user=> (fnc-sumar '(3 4 5 6))
+; 18
+; user=> (fnc-sumar '(A 4 5 6))
+; (;ERROR: +: Wrong type in arg1 A)
+; user=> (fnc-sumar '(3 A 5 6))
+; (;ERROR: +: Wrong type in arg2 A)
+; user=> (fnc-sumar '(3 4 A 6))
+; (;ERROR: +: Wrong type in arg2 A)

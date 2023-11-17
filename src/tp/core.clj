@@ -80,6 +80,7 @@
 ;Funcionaes adicionales
 (declare actualizar-valor-en-pos)
 (declare concatenar-si)
+(declare sumar-si)
 (declare menor-o-igual-a)
 
 
@@ -752,11 +753,23 @@
 ; (;ERROR: +: Wrong type in arg2 A)
 ; user=> (fnc-sumar '(3 4 A 6))
 ; (;ERROR: +: Wrong type in arg2 A)
+
+(defn sumar-si
+  "Suma dos numeros, si no son numeros muestra un mensaje de error."
+  [x, y]
+  (cond
+    (not (number? y)) (reduced (generar-mensaje-error :wrong-type-arg '+ y))
+    (not (number? x)) (reduced (generar-mensaje-error :wrong-type-arg '+ x))
+    :else (+ x y)))
+
+
 (defn fnc-sumar
   "Suma los elementos de una lista."
-  [])
+  [lista]
+  (if (empty? lista) 0 (reduce sumar-si lista)) 
+  )
 
-(+ 2 3 3 3)
+(fnc-sumar '(2 3 3 3))
 
 ; user=> (fnc-restar ())
 ; (;ERROR: -: Wrong number of args given)
