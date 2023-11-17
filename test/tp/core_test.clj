@@ -98,3 +98,10 @@
   (testing "Cuando son diferentes"
     (is (= (fnc-equal? '(1 1 2 1)) (symbol "#f")))
     (is (= (fnc-equal? '(a b c)) (symbol "#f"))))) 
+
+
+(deftest fnc-read-test
+  (testing "Cuando los parametros validos"
+    (is (= (fnc-read '(1)) (generar-mensaje-error :io-ports-not-implemented 'read)))
+    (is (= (fnc-read '(1 2 3)) (generar-mensaje-error :wrong-number-args-prim-proc 'read))))) 
+

@@ -726,7 +726,15 @@
 ; (;ERROR: Wrong number of args given #<primitive-procedure read>)
 (defn fnc-read
   "Devuelve la lectura de un elemento de Racket desde la terminal/consola."
-  [])
+  [args]
+  (let [cant-args (count args)]
+    (cond
+      (= cant-args 1) (generar-mensaje-error :io-ports-not-implemented 'read)
+      (> cant-args 1) (generar-mensaje-error :wrong-number-args-prim-proc 'read)
+      :else (->> (leer-entrada)
+                 (proteger-bool-en-str)
+                 (read-string)
+                 (restaurar-bool)))))
 
 ; user=> (fnc-sumar ())
 ; 0
