@@ -151,3 +151,17 @@
     (is (= (fnc-mayor '(1 4 3 4)) (symbol "#f")))
     (is (= (fnc-mayor '(1 A 3 4)) (generar-mensaje-error :wrong-type-arg '> 'A)))
     (is (= (fnc-mayor '(1 3 3 A)) (generar-mensaje-error :wrong-type-arg '> 'A))))) 
+
+(deftest fnc-mayor-o-igual-test
+  (testing "Cuando los valores estan ordenados"
+    (is (= (fnc-mayor-o-igual()) (symbol "#t")))
+    (is (= (fnc-mayor-o-igual '(1)) (symbol "#t")))
+    (is (= (fnc-mayor-o-igual '(4 2 2 0)) (symbol "#t")))
+    (is (= (fnc-mayor-o-igual '(4 3 2 1)) (symbol "#t")))
+    (is (= (fnc-mayor-o-igual '(4 4 4 4)) (symbol "#t")))
+    )
+
+  (testing "Cuando lo valores no son validos"
+    (is (= (fnc-mayor-o-igual '(1 4 3 4)) (symbol "#f")))
+    (is (= (fnc-mayor-o-igual '(1 A 3 4)) (generar-mensaje-error :wrong-type-arg '>= 'A)))
+    (is (= (fnc-mayor-o-igual '(1 3 3 A)) (generar-mensaje-error :wrong-type-arg '>= 'A))))) 

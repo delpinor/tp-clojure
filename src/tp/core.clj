@@ -892,7 +892,12 @@
 ; (;ERROR: >=: Wrong type in arg2 A)
 (defn fnc-mayor-o-igual
   "Devuelve #t si los numeros de una lista estan en orden decreciente; si no, #f."
-  [])
+  [lista]
+    (cond
+    (empty? lista) (convertir-a-tf true)
+    (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '>= (primer-no-numero lista))
+    :else (convertir-a-tf (apply >= lista)))
+  )
 
 ; user=> (evaluar-escalar 32 '(x 6 y 11 z "hola"))
 ; (32 (x 6 y 11 z "hola"))
