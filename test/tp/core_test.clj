@@ -118,10 +118,6 @@
          )
   ) 
 
-(deftest restar-si-test
-  (testing "Numeros validos"
-    (is (= (restar-si 8 2) 6))))
-
 
 (deftest fnc-restar-test
   (testing "Cuando es vacio"
@@ -135,36 +131,12 @@
 
 
 (deftest fnc-menor-test
-      (testing "Cuando los valores estan ordenados"
-        (is (= (fnc-menor ()) (symbol "#t")))
-        (is (= (fnc-menor '(1)) (symbol "#t")))
-        (is (= (fnc-menor '(1 2 3 4)) (symbol "#t"))) 
-        )
-  
-  (testing "Cuando lo valores no son validos" 
-    (is (= (fnc-menor '(1 4 3 4)) (symbol "#f")))
-    (is (= (fnc-menor '(1 A 3 4)) (generar-mensaje-error :wrong-type-arg '< 'A))) 
-    (is (= (fnc-menor '(1 3 3 A)) (generar-mensaje-error :wrong-type-arg '< 'A))) 
-    )
-  ) 
+  (testing "Cuando los valores estan ordenados"
+    (is (= (fnc-menor ()) (symbol "#t")))
+    (is (= (fnc-menor '(1)) (symbol "#t")))
+    (is (= (fnc-menor '(1 2 3 4)) (symbol "#t"))))
 
-; user=> (fnc-menor ())
-; #t
-; user=> (fnc-menor '(1))
-; #t
-; user=> (fnc-menor '(1 2))
-; #t
-; user=> (fnc-menor '(1 2 3))
-; #t
-; user=> (fnc-menor '(1 2 3 4))
-; #t
-; user=> (fnc-menor '(1 2 2 4))
-; #f
-; user=> (fnc-menor '(1 2 1 4))
-; #f
-; user=> (fnc-menor '(A 1 2 4))
-; (;ERROR: <: Wrong type in arg1 A)
-; user=> (fnc-menor '(1 A 1 4))
-; (;ERROR: <: Wrong type in arg2 A)
-; user=> (fnc-menor '(1 2 A 4))
-; (;ERROR: <: Wrong type in arg2 A)
+  (testing "Cuando lo valores no son validos"
+    (is (= (fnc-menor '(1 4 3 4)) (symbol "#f")))
+    (is (= (fnc-menor '(1 A 3 4)) (generar-mensaje-error :wrong-type-arg '< 'A)))
+    (is (= (fnc-menor '(1 3 3 A)) (generar-mensaje-error :wrong-type-arg '< 'A))))) 

@@ -83,8 +83,6 @@
 (declare primer-no-numero)
 (declare convertir-a-tf)
 (declare todos-numeros?)
-(declare sumar-si)
-(declare restar-si)
 (declare menor-o-igual-a)
 
 
@@ -531,6 +529,36 @@
                                     ())))))
 
 
+;Funciones agregadas
+(defn primer-no-numero
+  "Devuelve el primer elemento no nulo en caso de existir. nil en caso contrario."
+  [lista]
+  (->>
+   (filter (comp not number?) lista)
+   (first)))
+
+(defn convertir-a-tf [x]
+  (case x
+    true (symbol "#t")
+    false (symbol "#f")))
+
+(defn todos-numeros?
+  "Devuelve verdadero si son todos numeros, falso caso contrario"
+  [lista]
+  (every? number? lista))
+
+(defn actualizar-valor-en-pos
+  "Asigna nuevo valor en una posicion de una lista."
+  [lista, pos, valor]
+  (->>
+   (assoc (vec lista) pos valor)
+   (seq)))
+
+(defn menor-o-igual-a
+  "Si la cantidad es igual a 1 devuelve #t caso contrario #f."
+  [referencia, analizado]
+  (if (>= referencia analizado) (symbol "#t") (symbol "#f")))
+
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE RACKET (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
 
 ; user=> (leer-entrada)
@@ -595,14 +623,6 @@
                              (= indice -1) (concat ambiente (list clave valor))
                              (seq? valor) ambiente
                              :else (actualizar-valor-en-pos ambiente (inc indice) valor))))
-
-
-(defn actualizar-valor-en-pos
-  "Asigna nuevo valor en una posicion de una lista."
-  [lista, pos, valor]
-  (->>
-   (assoc (vec lista) pos valor)
-   (seq)))
 
 
 ; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
@@ -682,6 +702,7 @@
     (not (seq? x)) (reduced (generar-mensaje-error :wrong-type-arg 'append x))
     :else (concat x y)))
 
+
 ; user=> (fnc-equal? ())
 ; #t
 ; user=> (fnc-equal? '(A))
@@ -698,12 +719,6 @@
 ; #t
 ; user=> (fnc-equal? '(1 1 2 1))
 ; #f
-
-(defn menor-o-igual-a
-  "Si la cantidad es igual a 1 devuelve #t caso contrario #f."
-  [referencia, analizado]
-  (if (>= referencia analizado) (symbol "#t") (symbol "#f"))
-  )
 
 (defn fnc-equal?
   "Compara elementos. Si son iguales, devuelve #t. Si no, #f."
@@ -758,19 +773,15 @@
 ; user=> (fnc-sumar '(3 4 A 6))
 ; (;ERROR: +: Wrong type in arg2 A)
 
-(defn sumar-si
-  "Suma dos numeros, si no son numeros muestra un mensaje de error."
-  [x, y]
-  (cond
-    (not (number? y)) (reduced (generar-mensaje-error :wrong-type-arg '+ y))
-    (not (number? x)) (reduced (generar-mensaje-error :wrong-type-arg '+ x))
-    :else (+ x y)))
-
 (defn fnc-sumar
   "Suma los elementos de una lista."
   [lista]
-  (if (empty? lista) 0 (reduce sumar-si lista)) 
+  (cond 
+    (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '+ (primer-no-numero lista))
+    :else (apply + lista)
+    ) 
   )
+
 
 ; user=> (fnc-restar ())
 ; (;ERROR: -: Wrong number of args given)
@@ -789,23 +800,13 @@
 ; user=> (fnc-restar '(3 4 A 6))
 ; (;ERROR: -: Wrong type in arg2 A)
 
-(defn restar-si
-  "Resta dos numeros, si no son numeros muestra un mensaje de error."
-  [x , y]
-  (cond
-    (not (number? y)) (reduced (generar-mensaje-error :wrong-type-arg '- y))
-    (not (number? x)) (reduced (generar-mensaje-error :wrong-type-arg '- x))
-    :else (- x y))
-  )
-
 (defn fnc-restar
   "Resta los elementos de un lista."
   [lista]
   (cond
-    (empty? lista) (generar-mensaje-error :wrong-number-args-oper '-)
-    (= (count lista) 1) (- (first lista))
-    :else (reduce restar-si lista)))
-
+    (empty? lista) (generar-mensaje-error :wrong-number-args-oper '-) 
+    (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '- (primer-no-numero lista))
+    :else (apply - lista)))
 
 ; user=> (fnc-menor ())
 ; #t
@@ -828,29 +829,6 @@
 ; user=> (fnc-menor '(1 2 A 4))
 ; (;ERROR: <: Wrong type in arg2 A)
 
-(defn primer-no-numero
-  "Devuelve el primer elemento no nulo en caso de existir. nil en caso contrario."
-  [lista]
-  (->>
-   (filter (comp not number?) lista)
-   (first)
-   ) 
-  )
-
-(defn convertir-a-tf[x]
-  (case x
-    true (symbol "#t")
-    false (symbol "#f")
-    )
-  )
-
-(defn todos-numeros?
-  "Devuelve verdadero si son todos numeros, falso caso contrario"
-  [lista]
-  (every? number? lista)
-  )
-
-
 (defn fnc-menor
   "Devuelve #t si los numeros de una lista estan en orden estrictamente creciente; si no, #f."
   [lista]
@@ -858,9 +836,7 @@
     (empty? lista) (symbol "#t")
     (= (count lista) 1) (symbol "#t")
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '< (primer-no-numero lista))
-    :else (convertir-a-tf (apply < lista))
-    )
-  )
+    :else (convertir-a-tf (apply < lista))))
 
 
 
