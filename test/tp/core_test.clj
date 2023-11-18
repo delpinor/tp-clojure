@@ -164,4 +164,15 @@
   (testing "Cuando lo valores no son validos"
     (is (= (fnc-mayor-o-igual '(1 4 3 4)) (symbol "#f")))
     (is (= (fnc-mayor-o-igual '(1 A 3 4)) (generar-mensaje-error :wrong-type-arg '>= 'A)))
-    (is (= (fnc-mayor-o-igual '(1 3 3 A)) (generar-mensaje-error :wrong-type-arg '>= 'A))))) 
+    (is (= (fnc-mayor-o-igual '(1 3 3 A)) (generar-mensaje-error :wrong-type-arg '>= 'A)))))
+
+
+(deftest evaluar-escalar-test
+  (testing "Cuando no existe en el ambiente"
+    (is (= (evaluar-escalar 32 '(x 6 y 11 z "hola")) '(32 (x 6 y 11 z "hola"))))
+    (is (= (evaluar-escalar "chau" '(x 6 y 11 z "hola")) '("chau" (x 6 y 11 z "hola"))))
+    (is (= (evaluar-escalar 'n '(x 6 y 11 z "hola")) (list (generar-mensaje-error :unbound-variable 'n) '(x 6 y 11 z "hola")))))
+
+  (testing "Cuando existe en el ambiente"
+    (is (= (evaluar-escalar 'y '(x 6 y 11 z "hola")) '(11 (x 6 y 11 z "hola"))))
+    (is (= (evaluar-escalar 'z '(x 6 y 11 z "hola")) '("hola" (x 6 y 11 z "hola"))))))
