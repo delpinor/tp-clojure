@@ -84,6 +84,8 @@
 (declare convertir-a-tf)
 (declare todos-numeros?)
 (declare menor-o-igual-a)
+(declare es-lambda?)
+(declare es-variable?)
 
 
 (defn repl
@@ -559,6 +561,18 @@
   [referencia, analizado]
   (if (>= referencia analizado) (symbol "#t") (symbol "#f")))
 
+(defn es-lambda? 
+  "Devuelve verdadero si se respeta el formato de funciones lambda"
+  [args]
+  (and (seq? (first args)) (seq? (second args)) (= (count args) 2)))
+
+(defn es-variable?
+  "Devuelve verdadero si tiene el formato clave valor donde clave debe ser un simbolo y valor un numero."
+  [args]
+  (and (symbol? (first args)) (number? (second args)) (= (count args) 2)))
+
+
+
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE RACKET (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
 
 ; user=> (leer-entrada)
@@ -731,7 +745,6 @@
    ((partial menor-o-igual-a 1))
    )
   )
-
 
 
 ; user=> (fnc-read ())
@@ -919,7 +932,6 @@
   )
 
 
-
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<void> (x 2))
 ; user=> (evaluar-define '(define (f x) (+ x 1)) '(x 1))
@@ -936,9 +948,18 @@
 ; ((;ERROR: define: bad variable (define () 2)) (x 1))
 ; user=> (evaluar-define '(define 2 x) '(x 1))
 ; ((;ERROR: define: bad variable (define 2 x)) (x 1))
+
 (defn evaluar-define
   "Evalua una expresion `define`. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
-  [])
+  [expr amb]
+  (let [def-params (rest expr) cant (count def-params)]
+
+    (cond
+      (es-lambda? def-params) (list (symbol "#<void>") (actualizar-amb amb (first (first def-params)) (list 'lambda (list (second (first def-params))) (second def-params))))
+      (not= cant 2) (list (generar-mensaje-error :missing-or-extra 'define expr) amb)
+      (not (es-variable? def-params)) (list (generar-mensaje-error :bad-variable 'define expr) amb)
+      :else (list (symbol "#<void>") (actualizar-amb amb (first def-params) (second def-params))))))
+
 
 ; user=> (evaluar-if '(if 1 2) '(n 7))
 ; (2 (n 7))

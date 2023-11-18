@@ -176,3 +176,18 @@
   (testing "Cuando existe en el ambiente"
     (is (= (evaluar-escalar 'y '(x 6 y 11 z "hola")) '(11 (x 6 y 11 z "hola"))))
     (is (= (evaluar-escalar 'z '(x 6 y 11 z "hola")) '("hola" (x 6 y 11 z "hola"))))))
+
+(deftest evaluar-define-test
+  (testing "Cuando es una llamada correcta"
+    (is (= (evaluar-define '(define x 2) '(x 1)) (list (symbol "#<void>") '(x 2))))
+    (is (= (evaluar-define '(define y 2) '(x 1)) (list (symbol "#<void>") '(x 1 y 2))))
+    (is (= (evaluar-define '(define (f x) (+ x 1)) '(x 1)) (list (symbol "#<void>") '(x 1 f (lambda (x) (+ x 1)))))))
+
+  (testing "Cuando la llamada es invalida"
+    (is (= (evaluar-define '(define) '(x 1)) (list (generar-mensaje-error :missing-or-extra 'define '(define)) '(x 1))))
+    (is (= (evaluar-define '(define x) '(x 1)) (list (generar-mensaje-error :missing-or-extra 'define '(define x)) '(x 1))))
+    (is (= (evaluar-define '(define x 2 3) '(x 1)) (list (generar-mensaje-error :missing-or-extra 'define '(define x 2 3)) '(x 1))))
+    (is (= (evaluar-define '(define ()) '(x 1)) (list (generar-mensaje-error :missing-or-extra 'define '(define ())) '(x 1))))
+    (is (= (evaluar-define '(define 2 x) '(x 1)) (list (generar-mensaje-error :bad-variable 'define '(define 2 x)) '(x 1))))
+    (is (= (evaluar-define '(define () 2) '(x 1)) (list (generar-mensaje-error :bad-variable 'define '(define () 2)) '(x 1))))))
+
