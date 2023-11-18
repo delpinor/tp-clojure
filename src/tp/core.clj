@@ -81,7 +81,8 @@
 (declare actualizar-valor-en-pos)
 (declare concatenar-si)
 (declare primer-no-numero)
-(declare convertir-a-tf)
+(declare convertir-a-bool)
+(declare operar-or)
 (declare todos-numeros?)
 (declare menor-o-igual-a)
 (declare es-lambda?)
@@ -133,7 +134,9 @@
       (not (seq? expre))             (evaluar-escalar expre amb)
 
       (= (first expre) 'define) (evaluar-define expre amb)
-
+      (= (first expre) 'if) (evaluar-if expre amb) 
+      (= (first expre) 'set!) (evaluar-set! expre amb)
+      (= (first expre) 'or) (evaluar-or expre amb)
          ;
          ;
          ;
@@ -539,10 +542,18 @@
    (filter (comp not number?) lista)
    (first)))
 
-(defn convertir-a-tf [x]
-  (case x
-    true (symbol "#t")
-    false (symbol "#f")))
+(defn convertir-a-bool
+  "Devuelve el valor negado del booleano. Si es numero devuelve el mismo."
+  [x] 
+  (cond
+    (number? x) x
+    (true? x)(symbol "#t")
+    (false? x) (symbol "#f")
+    (= (symbol "#t") x) true
+    (= (symbol "#f") x) false
+  )
+)
+
 
 (defn todos-numeros?
   "Devuelve verdadero si son todos numeros, falso caso contrario"
@@ -571,7 +582,15 @@
   [args]
   (and (symbol? (first args)) (number? (second args)) (= (count args) 2)))
 
-
+(defn operar-or
+  "Hace or entre dos elementos booleanos o numeros."
+  ([x]  (->>
+         (convertir-a-bool x)
+         (convertir-a-bool)))
+  ([x, y] (->>
+           (println x y)
+           (or (convertir-a-bool x) (convertir-a-bool y))
+           (convertir-a-bool))))
 
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE RACKET (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
 
@@ -846,9 +865,9 @@
   "Devuelve #t si los numeros de una lista estan en orden estrictamente creciente; si no, #f."
   [lista]
   (cond
-    (empty? lista) (convertir-a-tf true)
+    (empty? lista) (convertir-a-bool true)
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '< (primer-no-numero lista))
-    :else (convertir-a-tf (apply < lista))))
+    :else (convertir-a-bool (apply < lista))))
 
 
 ; user=> (fnc-mayor ())
@@ -875,9 +894,9 @@
   "Devuelve #t si los numeros de una lista estan en orden estrictamente decreciente; si no, #f."
   [lista]
   (cond
-    (empty? lista) (convertir-a-tf true)
+    (empty? lista) (convertir-a-bool true)
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '> (primer-no-numero lista))
-    :else (convertir-a-tf (apply > lista))
+    :else (convertir-a-bool (apply > lista))
     )
   )
 
@@ -907,9 +926,9 @@
   "Devuelve #t si los numeros de una lista estan en orden decreciente; si no, #f."
   [lista]
     (cond
-    (empty? lista) (convertir-a-tf true)
+    (empty? lista) (convertir-a-bool true)
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '>= (primer-no-numero lista))
-    :else (convertir-a-tf (apply >= lista)))
+    :else (convertir-a-bool (apply >= lista)))
   )
 
 ; user=> (evaluar-escalar 32 '(x 6 y 11 z "hola"))
@@ -967,19 +986,55 @@
 ; (7 (n 7))
 ; user=> (evaluar-if '(if 1 n 8) '(n 7))
 ; (7 (n 7))
+
 ; user=> (evaluar-if (list 'if (symbol "#f") 'n) (list 'n 7 (symbol "#f") (symbol "#f")))
 ; (#<void> (n 7 #f #f))
 ; user=> (evaluar-if (list 'if (symbol "#f") 'n 8) (list 'n 7 (symbol "#f") (symbol "#f")))
 ; (8 (n 7 #f #f))
+; user=> (evaluar-if (list 'if (symbol "#t") 'n 8) (list 'n 7 (symbol "#f") (symbol "#f")))
+; (7 (n 7 #f #f))
 ; user=> (evaluar-if (list 'if (symbol "#f") 'n '(set! n 9)) (list 'n 7 (symbol "#f") (symbol "#f")))
 ; (#<void> (n 9 #f #f))
+
 ; user=> (evaluar-if '(if) '(n 7))
 ; ((;ERROR: if: missing or extra expression (if)) (n 7))
 ; user=> (evaluar-if '(if 1) '(n 7))
 ; ((;ERROR: if: missing or extra expression (if 1)) (n 7))
+
+(defn obtener-valor-de-amb
+    [clave ambiente] (let [indice (.indexOf ambiente clave)]
+                      (cond
+                        (= indice -1) clave
+                        :else (get (vec ambiente) (inc indice)))))
+
+(defn es-falso?[x]
+  (cond
+    (= (symbol "#f") x) true
+    (= (symbol "#t") x) false
+    :else (false? x)
+    )
+  )
+
+
+
+
+
 (defn evaluar-if
   "Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
-  [])
+  [expr amb]
+  (let [if-params (rest expr) cant (count if-params) op1 (nth if-params 0) op2 (nth if-params 1) op3 (nth if-params 2) ]
+    (cond
+      (or (< cant 2) (> cant 3)) (list (generar-mensaje-error :missing-or-extra 'if expr) amb)
+      (seq? op1) (evaluar op1 amb)
+      (seq? op2) (evaluar op2 amb)
+      (seq? op3) (evaluar op3 amb)
+      (= cant 2) (cond
+                   (not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
+                   (es-falso? op1) (list  (symbol "#<void>") amb))
+      (= cant 3) (cond
+                   (not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
+                   (es-falso? op1) (list  (obtener-valor-de-amb op3 amb) amb)))))
+
 
 ; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))
@@ -991,9 +1046,21 @@
 ; (5 (#f #f #t #t))
 ; user=> (evaluar-or (list 'or (symbol "#f")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))
+
+
 (defn evaluar-or
   "Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente."
-  [])
+  [expr amb]
+  (let [or-params (rest expr) cant (count or-params) op1 (first or-params) op2 (second or-params)]
+    (cond
+      (zero? cant) (list (symbol "#f") amb)
+      (seq? op1) (evaluar op1 amb)
+      (seq? op2) (evaluar op2 amb)
+      (= cant 1) (list (operar-or op1) amb)
+      (= cant 2) (list (operar-or op1 op2) amb)
+      )
+    ) 
+  )
 
 ; user=> (evaluar-set! '(set! x 1) '(x 0))
 ; (#<void> (x 1))
@@ -1007,7 +1074,9 @@
 ; ((;ERROR: set!: bad variable 1) (x 0))
 (defn evaluar-set!
   "Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion."
-  [])
+  [expr amb]
+  (list (actualizar-amb amb 'n 9))
+        )
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
 true
