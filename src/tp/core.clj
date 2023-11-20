@@ -1066,17 +1066,26 @@
 ; (#<void> (x 1))
 ; user=> (evaluar-set! '(set! x 1) '())
 ; ((;ERROR: unbound variable: x) ())
+
 ; user=> (evaluar-set! '(set! x) '(x 0))
 ; ((;ERROR: set!: missing or extra expression (set! x)) (x 0))
 ; user=> (evaluar-set! '(set! x 1 2) '(x 0))
 ; ((;ERROR: set!: missing or extra expression (set! x 1 2)) (x 0))
+
 ; user=> (evaluar-set! '(set! 1 2) '(x 0))
 ; ((;ERROR: set!: bad variable 1) (x 0))
 (defn evaluar-set!
   "Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion."
   [expr amb]
-  (list (actualizar-amb amb 'n 9))
-        )
+  ( let [set-params (rest expr) cant (count set-params) op1 (nth set-params 0)]
+   (cond
+     (not= cant 2) (list (generar-mensaje-error :missing-or-extra 'set! expr) amb)
+     (not (symbol? op1)) (list (generar-mensaje-error :bad-variable 'set! op1) amb)
+     (neg? (.indexOf amb op1)) (list (generar-mensaje-error :unbound-variable op1) amb)
+     :else (list (symbol "#<void>") (actualizar-amb amb op1 (second set-params)))
+     )
+  )
+)
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
 true

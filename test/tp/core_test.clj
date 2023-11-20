@@ -210,14 +210,17 @@
         )
   
   ) 
-; user=> (evaluar-or (list 'or 7) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
-; (7 (#f #f #t #t))
-; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
-; (#f (#f #f #t #t))
 
-; user=> (evaluar-or (list 'or (symbol "#t")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
-; (#t (#f #f #t #t))
-; user=> (evaluar-or (list 'or (symbol "#f") 5) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
-; (5 (#f #f #t #t))
-; user=> (evaluar-or (list 'or (symbol "#f")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
-; (#f (#f #f #t #t))
+(deftest evaluar-set!-test
+      (testing "Cuando existe en el ambiente"
+        (is (= (evaluar-set! '(set! x 1) '(x 0)) (list (symbol "#<void>") '(x 1))))
+        (is (= (evaluar-set! '(set! y 1) '(y 2)) (list (symbol "#<void>") '(y 1)))) 
+        )
+      (testing "Cuando los parametros son invalidos"
+        (is (= (evaluar-set! '(set! x 1) '()) (list (generar-mensaje-error :unbound-variable 'x) ())))
+        (is (= (evaluar-set! '(set! x) '(x 0)) (list (generar-mensaje-error :missing-or-extra 'set! '(set! x)) '(x 0))))
+        (is (= (evaluar-set! '(set! x 1 2) '(x 0)) (list (generar-mensaje-error :missing-or-extra 'set! '(set! x 1 2)) '(x 0))))
+        (is (= (evaluar-set! '(set! 1 2) '(x 0)) (list (generar-mensaje-error :bad-variable 'set! 1) '(x 0)))) 
+        )
+  ) 
+
