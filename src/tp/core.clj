@@ -132,11 +132,22 @@
     (list expre amb)                                      ; de lo contrario, evaluarla
     (cond
       (not (seq? expre))             (evaluar-escalar expre amb)
-
       (= (first expre) 'define) (evaluar-define expre amb)
-      (= (first expre) 'if) (evaluar-if expre amb) 
-      (= (first expre) 'set!) (evaluar-set! expre amb)
+      (= (first expre) 'if) (evaluar-if expre amb)
       (= (first expre) 'or) (evaluar-or expre amb)
+      (= (first expre) 'set!) (evaluar-set! expre amb)
+      (= (first expre) 'cond) (evaluar-cond expre amb)
+      (= (first expre) 'eval) (evaluar-eval expre amb)
+      (= (first expre) 'exit) (evaluar-exit expre amb)
+      (= (first expre) 'lambda) (evaluar-lambda expre amb)
+      (= (first expre) 'enter!) (evaluar-enter! expre amb)
+      (= (first expre) 'quote) (evaluar-quote expre amb)
+      (= (first expre) 'define) (evaluar-define expre amb)
+      (= (first expre) 'if) (evaluar-if expre amb)
+      (= (first expre) 'or) (evaluar-or expre amb)
+      (= (first expre) 'set!) (evaluar-set! expre amb)
+
+      
          ;
          ;
          ;
@@ -199,8 +210,26 @@
   "Aplica una funcion primitiva a una `lae` (lista de argumentos evaluados)."
   [fnc lae amb]
   (cond
-    (= fnc '<)            (fnc-menor lae)
-
+    (= fnc 'append) (fnc-append lae)
+    (= fnc 'equal?) (fnc-equal? lae)
+    (= fnc 'read) (fnc-read lae)
+    (= fnc 'sumar) (fnc-sumar lae)
+    (= fnc 'restar) (fnc-restar lae)
+    (= fnc '<) (fnc-menor lae)
+    (= fnc '>) (fnc-mayor lae)
+    (= fnc '>=) (fnc-mayor-o-igual lae)
+    (= fnc 'reverse) (fnc-reverse lae)
+    (= fnc 'null?) (fnc-null? lae)
+    (= fnc 'not) (fnc-not lae)
+    (= fnc 'newline) (fnc-newline lae)
+    (= fnc 'list?) (fnc-list? lae)
+    (= fnc 'list) (fnc-list lae)
+    (= fnc 'length) (fnc-length lae)
+    (= fnc 'env) (fnc-env lae amb)
+    (= fnc 'display) (fnc-display lae)
+    (= fnc 'cons) (fnc-cons lae)
+    (= fnc 'cdr) (fnc-cdr lae)
+    (= fnc 'car) (fnc-car lae)
     ;
     ; COMPLETAR
     ;
@@ -1014,9 +1043,6 @@
     :else (false? x)
     )
   )
-
-
-
 
 
 (defn evaluar-if
