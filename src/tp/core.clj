@@ -109,8 +109,8 @@
          (let [str-corregida (proteger-bool-en-str renglon),
                cod-en-str (read-string str-corregida),
                cod-corregido (restaurar-bool cod-en-str),
-               res (evaluar cod-corregido amb),     ; EVAL
-               res1 (first res),
+               res (evaluar cod-corregido amb),     ; EVAL 
+               res1  (first res),
                res2 (second res)]
            (cond
              (nil? res2) 'Goodbye!              ; Si el ambiente del resultado es 'nil', es porque se ha evaluado (exit)
@@ -125,17 +125,14 @@
        (repl amb ns)))))                     ; LOOP (Se llama a si misma con el ambiente intacto)
 
 
+
 (defn evaluar
   "Evalua una expresion `expre` en un ambiente. Devuelve un lista con un valor resultante y un ambiente."
   [expre amb]
   (if (and (seq? expre) (or (empty? expre) (error? expre))) ; si `expre` es () o error, devolverla intacta
     (list expre amb)                                      ; de lo contrario, evaluarla
     (cond
-      (not (seq? expre))             (evaluar-escalar expre amb)
-      (= (first expre) 'define) (evaluar-define expre amb)
-      (= (first expre) 'if) (evaluar-if expre amb)
-      (= (first expre) 'or) (evaluar-or expre amb)
-      (= (first expre) 'set!) (evaluar-set! expre amb)
+      (not (seq? expre)) (evaluar-escalar expre amb)
       (= (first expre) 'cond) (evaluar-cond expre amb)
       (= (first expre) 'eval) (evaluar-eval expre amb)
       (= (first expre) 'exit) (evaluar-exit expre amb)
@@ -159,19 +156,22 @@
 
       :else (let [res-eval-1 (evaluar (first expre) amb),
                   res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
-              (aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
+              (aplicar (first res-eval-1 ) (next res-eval-2) (first res-eval-2))))))
 
 
 (defn aplicar
   "Aplica la funcion `fnc` a la lista de argumentos `lae` evaluados en el ambiente dado."
   ([fnc lae amb]
-   (aplicar (revisar-fnc fnc) (revisar-lae lae) fnc lae amb))
+   (aplicar (revisar-fnc fnc) (revisar-lae lae) fnc lae amb)
+   )
   ([resu1 resu2 fnc lae amb]
    (cond
      (error? resu1) (list resu1 amb)
      (error? resu2) (list resu2 amb)
      (not (seq? fnc)) (list (aplicar-funcion-primitiva fnc lae amb) amb)
-     :else (aplicar-lambda fnc lae amb))))
+     :else (aplicar-lambda fnc lae amb))
+   )
+  )
 
 
 (defn aplicar-lambda
@@ -213,8 +213,8 @@
     (= fnc 'append) (fnc-append lae)
     (= fnc 'equal?) (fnc-equal? lae)
     (= fnc 'read) (fnc-read lae)
-    (= fnc 'sumar) (fnc-sumar lae)
-    (= fnc 'restar) (fnc-restar lae)
+    (= fnc '+) (fnc-sumar lae)
+    (= fnc '-) (fnc-restar lae)
     (= fnc '<) (fnc-menor lae)
     (= fnc '>) (fnc-mayor lae)
     (= fnc '>=) (fnc-mayor-o-igual lae)
@@ -385,12 +385,16 @@
 
 (defn revisar-fnc
   "Si la `lis` representa un error lo devuelve; si no, devuelve nil."
-  [lis] (if (error? lis) lis nil))
+  [lis] 
+  (if (error? lis) lis nil)
+  )
 
 
 (defn revisar-lae
   "Si la `lis` contiene alguna sublista que representa un error lo devuelve; si no, devuelve nil."
-  [lis] (first (remove nil? (map revisar-fnc (filter seq? lis)))))
+  [lis] 
+  (first (remove nil? (map revisar-fnc (filter seq? lis))))
+  )
 
 
 (defn evaluar-cond
@@ -609,17 +613,10 @@
 (defn es-variable?
   "Devuelve verdadero si tiene el formato clave valor donde clave debe ser un simbolo y valor un numero."
   [args]
-  (and (symbol? (first args)) (number? (second args)) (= (count args) 2)))
+  (and (symbol? (first args)) (= (count args) 2)))
 
-(defn operar-or
-  "Hace or entre dos elementos booleanos o numeros."
-  ([x]  (->>
-         (convertir-a-bool x)
-         (convertir-a-bool)))
-  ([x, y] (->>
-           (println x y)
-           (or (convertir-a-bool x) (convertir-a-bool y))
-           (convertir-a-bool))))
+
+
 
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE RACKET (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
 
@@ -643,8 +640,10 @@
      (let [entrada (str (read))]
        (cond
          (= (verificar-parentesis entrada) 0) entrada
+        ; (neg? (verificar-parentesis entrada)) (generar-mensaje-error :warning-paren)
          :else (recur)))))
   )
+
 
 ; user=> (verificar-parentesis "(hola 'mundo")
 ; 1
@@ -708,11 +707,14 @@
 (defn error?
   "Devuelve true o false, segun sea o no el arg. una lista con `;ERROR:` o `;WARNING:` como primer elemento."
   [lista]
-  (let [tipo-error (first lista)]
     (cond
-      (= tipo-error (symbol ";ERROR:")) true
-      (= tipo-error (symbol ";WARNING:")) true
-      :else false)))
+      (not (seq? lista)) false
+      (= (first lista) (symbol ";ERROR:")) true
+      (= (first lista) (symbol ";WARNING:")) true
+      :else false)
+
+  )
+
 
 ; user=> (proteger-bool-en-str "(or #f #t)")
 ; "(or %f %t)"
@@ -734,14 +736,23 @@
 ; (and (or #F #f #t #T) #T)
 ; user=> (restaurar-bool (read-string "(and (or %F %f %t %T) %T)") )
 ; (and (or #F #f #t #T) #T)
+
+(defn porcentaje-por-numeral[x]
+  (cond
+    (= '%T x) (symbol "#T")
+    (= '%t x) (symbol "#t")
+    (= '%F x) (symbol "#F")
+    (= '%f x) (symbol "#f")
+    :else x
+    )
+  )
+
 (defn restaurar-bool
   "Cambia, en un codigo leido con read-string, %t por #t y %f por #f."
   [cadena]
-  (->
-   (clojure.string/replace cadena #"%t" "#t")
-   (clojure.string/replace #"%T" "#T")
-   (clojure.string/replace #"%f" "#f")
-   (clojure.string/replace #"%F" "#F")))
+  (cond
+    (seq? cadena) (map restaurar-bool cadena)
+    :else (porcentaje-por-numeral cadena)))
 
 
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
@@ -984,6 +995,9 @@
 ; (#<void> (x 2))
 ; user=> (evaluar-define '(define (f x) (+ x 1)) '(x 1))
 ; (#<void> (x 1 f (lambda (x) (+ x 1))))
+
+;(evaluar-define '(define (sumar a b) (+ a b)) '(x 1))
+
 ; user=> (evaluar-define '(define) '(x 1))
 ; ((;ERROR: define: missing or extra expression (define)) (x 1))
 ; user=> (evaluar-define '(define x) '(x 1))
@@ -1003,7 +1017,7 @@
   (let [def-params (rest expr) cant (count def-params)]
 
     (cond
-      (es-lambda? def-params) (list (symbol "#<void>") (actualizar-amb amb (first (first def-params)) (list 'lambda (list (second (first def-params))) (second def-params))))
+      (es-lambda? def-params) (list (symbol "#<void>") (actualizar-amb amb (first (first def-params)) (list 'lambda (rest (first def-params)) (second def-params))))
       (not= cant 2) (list (generar-mensaje-error :missing-or-extra 'define expr) amb)
       (not (es-variable? def-params)) (list (generar-mensaje-error :bad-variable 'define expr) amb)
       :else (list (symbol "#<void>") (actualizar-amb amb (first def-params) (second def-params))))))
@@ -1046,20 +1060,30 @@
 
 
 (defn evaluar-if
-  "Evalua una expresion `if`. Devuelve una lista con el resultado y un ambiente eventualmente modificado."
-  [expr amb]
-  (let [if-params (rest expr) cant (count if-params) op1 (nth if-params 0) op2 (nth if-params 1) op3 (nth if-params 2) ]
+   [expr amb]
+  (let [if-params (rest expr) cant (count if-params)]
     (cond
       (or (< cant 2) (> cant 3)) (list (generar-mensaje-error :missing-or-extra 'if expr) amb)
-      (seq? op1) (evaluar op1 amb)
-      (seq? op2) (evaluar op2 amb)
-      (seq? op3) (evaluar op3 amb)
-      (= cant 2) (cond
-                   (not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
-                   (es-falso? op1) (list  (symbol "#<void>") amb))
-      (= cant 3) (cond
-                   (not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
-                   (es-falso? op1) (list  (obtener-valor-de-amb op3 amb) amb)))))
+      (= cant 2) (let [op1 (nth if-params 0) op2 (nth if-params 1) res1 (evaluar op1 amb) res2 (evaluar op2 amb)]
+                   (cond
+                     (es-falso? (first res1)) (list  (symbol "#<void>") amb)
+                     :else res2
+                     )
+                   )
+      (= cant 3) (let [op1 (nth if-params 0) op2 (nth if-params 1) op3 (nth if-params 2)  res1 (evaluar op1 amb) res2 (evaluar op2 amb) res3 (evaluar op3 amb)]
+                   ;(not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
+                   (cond
+                     (es-falso? (first res1)) res3
+                     :else res2
+                     )
+                   )
+      ;; (= cant 3) (cond
+      ;;              (not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
+      ;;              (es-falso? op1) (list  (obtener-valor-de-amb op3 amb) amb)))
+    )
+  
+  )
+)
 
 
 ; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
@@ -1073,6 +1097,14 @@
 ; user=> (evaluar-or (list 'or (symbol "#f")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))
 
+(defn operar-or
+  "Hace or entre dos elementos booleanos o numeros."
+  ([x]  (->>
+         (convertir-a-bool x)
+         (convertir-a-bool)))
+  ([x, y] (->>
+           (or (convertir-a-bool x) (convertir-a-bool y))
+           (convertir-a-bool))))
 
 (defn evaluar-or
   "Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente."
@@ -1093,6 +1125,8 @@
 ; user=> (evaluar-set! '(set! x 1) '())
 ; ((;ERROR: unbound variable: x) ())
 
+;(evaluar-set! '(set! d (+ 1 d)) '(d 0))
+
 ; user=> (evaluar-set! '(set! x) '(x 0))
 ; ((;ERROR: set!: missing or extra expression (set! x)) (x 0))
 ; user=> (evaluar-set! '(set! x 1 2) '(x 0))
@@ -1100,18 +1134,21 @@
 
 ; user=> (evaluar-set! '(set! 1 2) '(x 0))
 ; ((;ERROR: set!: bad variable 1) (x 0))
+
 (defn evaluar-set!
   "Evalua una expresion `set!`. Devuelve una lista con el resultado y un ambiente actualizado con la redefinicion."
   [expr amb]
-  ( let [set-params (rest expr) cant (count set-params) op1 (nth set-params 0)]
+  ( let [set-params (rest expr) cant (count set-params) op1 (nth set-params 0) op2 (nth set-params 1)]
    (cond
      (not= cant 2) (list (generar-mensaje-error :missing-or-extra 'set! expr) amb)
      (not (symbol? op1)) (list (generar-mensaje-error :bad-variable 'set! op1) amb)
      (neg? (.indexOf amb op1)) (list (generar-mensaje-error :unbound-variable op1) amb)
+     (seq? op2) (list (symbol "#<void>") (actualizar-amb amb op1 (first (evaluar op2 amb))))
      :else (list (symbol "#<void>") (actualizar-amb amb op1 (second set-params)))
      )
   )
 )
+
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
 true
