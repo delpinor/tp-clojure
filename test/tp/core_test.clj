@@ -92,8 +92,8 @@
   (testing "Cuando son iguales"
     (is (= (fnc-equal? ()) (symbol "#t")))
     (is (= (fnc-equal? '(A)) (symbol "#t")))
-    (is (= (fnc-equal? '(A a)) (symbol "#t")))
-    (is (= (fnc-equal? '(A a A a)) (symbol "#t")))
+    (is (= (fnc-equal? '(A a)) (symbol "#f")))
+    (is (= (fnc-equal? '(A a A a)) (symbol "#f")))
     (is (= (fnc-equal? '(1 1 1 1)) (symbol "#t"))))
   (testing "Cuando son diferentes"
     (is (= (fnc-equal? '(1 1 2 1)) (symbol "#f")))

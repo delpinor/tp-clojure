@@ -97,7 +97,7 @@
    (repl (list 'append 'append 'car 'car 'cdr 'cdr 'cond 'cond 'cons 'cons 'define 'define
                'display 'display 'enter! 'enter! 'env 'env 'equal? 'equal? 'eval 'eval 'exit 'exit
                'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list?
-               'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
+               'newline 'newline 'nil 'nil 'not 'not 'null? 'null? 'or 'or 'quote 'quote
                'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
                (symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>=) ""))
   ([amb ns]
@@ -162,16 +162,16 @@
 (defn aplicar
   "Aplica la funcion `fnc` a la lista de argumentos `lae` evaluados en el ambiente dado."
   ([fnc lae amb]
-   (aplicar (revisar-fnc fnc) (revisar-lae lae) fnc lae amb)
-   )
+   (aplicar (revisar-fnc fnc) (revisar-lae lae) fnc lae amb))
+   
   ([resu1 resu2 fnc lae amb]
    (cond
      (error? resu1) (list resu1 amb)
      (error? resu2) (list resu2 amb)
      (not (seq? fnc)) (list (aplicar-funcion-primitiva fnc lae amb) amb)
-     :else (aplicar-lambda fnc lae amb))
-   )
-  )
+     :else (aplicar-lambda fnc lae amb))))
+   
+  
 
 
 (defn aplicar-lambda
@@ -386,15 +386,15 @@
 (defn revisar-fnc
   "Si la `lis` representa un error lo devuelve; si no, devuelve nil."
   [lis] 
-  (if (error? lis) lis nil)
-  )
+  (if (error? lis) lis nil))
+  
 
 
 (defn revisar-lae
   "Si la `lis` contiene alguna sublista que representa un error lo devuelve; si no, devuelve nil."
   [lis] 
-  (first (remove nil? (map revisar-fnc (filter seq? lis))))
-  )
+  (first (remove nil? (map revisar-fnc (filter seq? lis)))))
+  
 
 
 (defn evaluar-cond
@@ -579,13 +579,13 @@
   "Devuelve el valor negado del booleano. Si es numero devuelve el mismo."
   [x] 
   (cond
-    (number? x) x
-    (true? x)(symbol "#t")
-    (false? x) (symbol "#f")
+    (= true x)(symbol "#t")
+    (= false x) (symbol "#f")
     (= (symbol "#t") x) true
     (= (symbol "#f") x) false
-  )
-)
+    :else x))
+  
+
 
 
 (defn todos-numeros?
@@ -641,8 +641,8 @@
        (cond
          (= (verificar-parentesis entrada) 0) entrada
         ; (neg? (verificar-parentesis entrada)) (generar-mensaje-error :warning-paren)
-         :else (recur)))))
-  )
+         :else (recur))))))
+  
 
 
 ; user=> (verificar-parentesis "(hola 'mundo")
@@ -707,13 +707,13 @@
 (defn error?
   "Devuelve true o false, segun sea o no el arg. una lista con `;ERROR:` o `;WARNING:` como primer elemento."
   [lista]
-    (cond
-      (not (seq? lista)) false
-      (= (first lista) (symbol ";ERROR:")) true
-      (= (first lista) (symbol ";WARNING:")) true
-      :else false)
+  (cond
+    (not (seq? lista)) false
+    (= (first lista) (symbol ";ERROR:")) true
+    (= (first lista) (symbol ";WARNING:")) true
+    :else false))
 
-  )
+  
 
 
 ; user=> (proteger-bool-en-str "(or #f #t)")
@@ -729,8 +729,8 @@
    (clojure.string/replace cadena #"#t" "%t")
    (clojure.string/replace #"#T" "%T")
    (clojure.string/replace #"#f" "%f")
-   (clojure.string/replace #"#F" "%F"))
-  )
+   (clojure.string/replace #"#F" "%F")))
+  
 
 ; user=> (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)")))
 ; (and (or #F #f #t #T) #T)
@@ -743,9 +743,9 @@
     (= '%t x) (symbol "#t")
     (= '%F x) (symbol "#F")
     (= '%f x) (symbol "#f")
-    :else x
-    )
-  )
+    :else x))
+    
+  
 
 (defn restaurar-bool
   "Cambia, en un codigo leido con read-string, %t por #t y %f por #f."
@@ -764,8 +764,8 @@
 (defn fnc-append
   "Devuelve el resultado de fusionar listas."
   [lista]
-  (reduce concatenar-si lista)
-   )
+  (reduce concatenar-si lista))
+   
 
 (defn concatenar-si 
   "Concatena dos elementos si son listas, caso contrario muestra un mensaje de error."
@@ -792,19 +792,22 @@
 ; #t
 ; user=> (fnc-equal? '(1 1 2 1))
 ; #f
+; user=> (fnc-equal? '((1 1) (1 1)))
+; #t
+; user=> (fnc-equal? '((1 1) (2 1)))
+; #f
+
+
+
 
 (defn fnc-equal?
   "Compara elementos. Si son iguales, devuelve #t. Si no, #f."
   [lista]
-  (->>
-   (apply str lista)
-   (clojure.string/lower-case)
-   (distinct)
-   (count)
-   ((partial menor-o-igual-a 1))
-   )
-  )
-
+  (cond
+    (empty? lista) (convertir-a-bool true)
+    :else (convertir-a-bool (true? (apply = lista)))
+    )
+)
 
 ; user=> (fnc-read ())
 ; (hola
@@ -824,9 +827,9 @@
       (= cant-args 1) (generar-mensaje-error :io-ports-not-implemented 'read)
       (> cant-args 1) (generar-mensaje-error :wrong-number-args-prim-proc 'read)
       :else (->> (leer-entrada)
-                 (proteger-bool-en-str)
                  (read-string)
-                 (restaurar-bool)))))
+                 ))))
+
 
 ; user=> (fnc-sumar ())
 ; 0
@@ -850,9 +853,9 @@
   [lista]
   (cond 
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '+ (primer-no-numero lista))
-    :else (apply + lista)
-    ) 
-  )
+    :else (apply + lista)))
+     
+  
 
 
 ; user=> (fnc-restar ())
@@ -936,9 +939,9 @@
   (cond
     (empty? lista) (convertir-a-bool true)
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '> (primer-no-numero lista))
-    :else (convertir-a-bool (apply > lista))
-    )
-  )
+    :else (convertir-a-bool (apply > lista))))
+    
+  
 
 
 
@@ -965,11 +968,11 @@
 (defn fnc-mayor-o-igual
   "Devuelve #t si los numeros de una lista estan en orden decreciente; si no, #f."
   [lista]
-    (cond
-    (empty? lista) (convertir-a-bool true)
-    (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '>= (primer-no-numero lista))
-    :else (convertir-a-bool (apply >= lista)))
-  )
+  (cond
+   (empty? lista) (convertir-a-bool true)
+   (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '>= (primer-no-numero lista))
+   :else (convertir-a-bool (apply >= lista))))
+  
 
 ; user=> (evaluar-escalar 32 '(x 6 y 11 z "hola"))
 ; (32 (x 6 y 11 z "hola"))
@@ -986,10 +989,9 @@
   [escalar ambiente]
   (cond
     (not (symbol? escalar)) (list escalar ambiente)
-    :else (list (buscar escalar ambiente) ambiente)
-    )
-  )
-
+    :else (list (buscar escalar ambiente) ambiente)))
+    
+  
 
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<void> (x 2))
@@ -1054,9 +1056,9 @@
   (cond
     (= (symbol "#f") x) true
     (= (symbol "#t") x) false
-    :else (false? x)
-    )
-  )
+    :else (false? x)))
+    
+  
 
 
 (defn evaluar-if
@@ -1067,23 +1069,23 @@
       (= cant 2) (let [op1 (nth if-params 0) op2 (nth if-params 1) res1 (evaluar op1 amb) res2 (evaluar op2 amb)]
                    (cond
                      (es-falso? (first res1)) (list  (symbol "#<void>") amb)
-                     :else res2
-                     )
-                   )
+                     :else res2))
+                     
+                   
       (= cant 3) (let [op1 (nth if-params 0) op2 (nth if-params 1) op3 (nth if-params 2)  res1 (evaluar op1 amb) res2 (evaluar op2 amb) res3 (evaluar op3 amb)]
                    ;(not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
                    (cond
                      (es-falso? (first res1)) res3
-                     :else res2
-                     )
-                   )
+                     :else res2)))))
+                     
+                   
       ;; (= cant 3) (cond
       ;;              (not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
       ;;              (es-falso? op1) (list  (obtener-valor-de-amb op3 amb) amb)))
-    )
+    
   
-  )
-)
+  
+
 
 
 ; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
@@ -1094,8 +1096,9 @@
 ; (7 (#f #f #t #t))
 ; user=> (evaluar-or (list 'or (symbol "#f") 5) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (5 (#f #f #t #t))
-; user=> (evaluar-or (list 'or (symbol "#f")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
+; user=> (evaluar-or (list 'or (symbol "#t")) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))
+
 
 (defn operar-or
   "Hace or entre dos elementos booleanos o numeros."
@@ -1106,19 +1109,22 @@
            (or (convertir-a-bool x) (convertir-a-bool y))
            (convertir-a-bool))))
 
+(defn evaluar-or-aux[amb expr1 expr2]
+  (let [res1 (first (evaluar expr1 amb)) res2 (first (evaluar expr2 amb))]
+    (cond
+      (not (es-falso? res1)) (reduced res1)
+      ;:else (operar-or (spy "res1" res1)  (spy "res2" res2))))) 
+      :else (operar-or res1  res2))))
+        
+
 (defn evaluar-or
   "Evalua una expresion `or`.  Devuelve una lista con el resultado y un ambiente."
-  [expr amb]
-  (let [or-params (rest expr) cant (count or-params) op1 (first or-params) op2 (second or-params)]
-    (cond
-      (zero? cant) (list (symbol "#f") amb)
-      (seq? op1) (evaluar op1 amb)
-      (seq? op2) (evaluar op2 amb)
-      (= cant 1) (list (operar-or op1) amb)
-      (= cant 2) (list (operar-or op1 op2) amb)
-      )
-    ) 
-  )
+  ([expr amb]
+   (let [or-params (rest expr) cant (count or-params)]
+     (cond
+       (zero? cant) (list (symbol "#f") amb)
+       :else (list (reduce (partial evaluar-or-aux amb) or-params) amb)))))
+      
 
 ; user=> (evaluar-set! '(set! x 1) '(x 0))
 ; (#<void> (x 1))
@@ -1144,10 +1150,10 @@
      (not (symbol? op1)) (list (generar-mensaje-error :bad-variable 'set! op1) amb)
      (neg? (.indexOf amb op1)) (list (generar-mensaje-error :unbound-variable op1) amb)
      (seq? op2) (list (symbol "#<void>") (actualizar-amb amb op1 (first (evaluar op2 amb))))
-     :else (list (symbol "#<void>") (actualizar-amb amb op1 (second set-params)))
-     )
-  )
-)
+     :else (list (symbol "#<void>") (actualizar-amb amb op1 (second set-params))))))
+     
+  
+
 
 
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
