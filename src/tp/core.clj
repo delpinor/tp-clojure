@@ -97,7 +97,7 @@
    (repl (list 'append 'append 'car 'car 'cdr 'cdr 'cond 'cond 'cons 'cons 'define 'define
                'display 'display 'enter! 'enter! 'env 'env 'equal? 'equal? 'eval 'eval 'exit 'exit
                'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list?
-               'newline 'newline 'nil 'nil 'not 'not 'null? 'null? 'or 'or 'quote 'quote
+               'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
                'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
                (symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>=) ""))
   ([amb ns]
@@ -586,8 +586,6 @@
     :else x))
   
 
-
-
 (defn todos-numeros?
   "Devuelve verdadero si son todos numeros, falso caso contrario"
   [lista]
@@ -600,15 +598,7 @@
    (assoc (vec lista) pos valor)
    (seq)))
 
-(defn menor-o-igual-a
-  "Si la cantidad es igual a 1 devuelve #t caso contrario #f."
-  [referencia, analizado]
-  (if (>= referencia analizado) (symbol "#t") (symbol "#f")))
 
-(defn es-lambda? 
-  "Devuelve verdadero si se respeta el formato de funciones lambda"
-  [args]
-  (and (seq? (first args)) (seq? (second args)) (= (count args) 2)))
 
 (defn es-variable?
   "Devuelve verdadero si tiene el formato clave valor donde clave debe ser un simbolo y valor un numero."
@@ -640,10 +630,10 @@
      (let [entrada (str (read))]
        (cond
          (= (verificar-parentesis entrada) 0) entrada
-        ; (neg? (verificar-parentesis entrada)) (generar-mensaje-error :warning-paren)
+         (neg? (verificar-parentesis entrada)) (generar-mensaje-error :warning-paren)
          :else (recur))))))
-  
 
+  
 
 ; user=> (verificar-parentesis "(hola 'mundo")
 ; 1
@@ -676,27 +666,40 @@
 ; (a 1 b 2 c 3)
 ; user=> (actualizar-amb () 'b 7)
 ; (b 7)
+
+
+(defn pos-impares [lista]
+  (take-nth 2 lista))
+
+
+(defn pos-pares [lista]
+  (take-nth 2 (rest lista)))
+
 (defn actualizar-amb
   "Devuelve un ambiente actualizado con una clave (nombre de la variable o funcion) y su valor. 
   Si el valor es un error, el ambiente no se modifica. De lo contrario, se le carga o reemplaza la nueva informacion."
-  [ambiente clave valor] (let [indice (.indexOf ambiente clave)]
+  [ambiente clave valor] (let [indice (.indexOf (pos-impares ambiente) clave)]
                            (cond
                              (= indice -1) (concat ambiente (list clave valor))
                              (seq? valor) ambiente
-                             :else (actualizar-valor-en-pos ambiente (inc indice) valor))))
+                             :else (actualizar-valor-en-pos ambiente (inc (* indice 2)) valor))))
 
 
 ; user=> (buscar 'c '(a 1 b 2 c 3 d 4 e 5))
 ; 3
 ; user=> (buscar 'f '(a 1 b 2 c 3 d 4 e 5))
 ; (list ;ERROR: unbound variable: f)
+
+
+
+
 (defn buscar
   "Busca una clave en un ambiente (una lista con claves en las posiciones impares [1, 3, 5...] y valores en las pares [2, 4, 6...]
    y devuelve el valor asociado. Devuelve un error :unbound-variable si no la encuentra."
-  [clave ambiente] (let [indice (.indexOf ambiente clave)]
+  [clave ambiente] (let [claves (pos-impares ambiente) valores (pos-pares ambiente) indice (.indexOf claves clave)]
                      (cond
                        (= indice -1) (generar-mensaje-error :unbound-variable clave) 
-                       :else (get (vec ambiente) (inc indice)))))
+                       :else (get (vec valores) indice))))
 
 ; user=> (error? (list (symbol ";ERROR:") 'mal 'hecho))
 ; true
@@ -805,7 +808,7 @@
   [lista]
   (cond
     (empty? lista) (convertir-a-bool true)
-    :else (convertir-a-bool (true? (apply = lista)))
+    :else (convertir-a-bool (true? (apply = (spy "entra eq" lista))))
     )
 )
 
@@ -827,9 +830,7 @@
     (cond
       (= cant-args 1) (generar-mensaje-error :io-ports-not-implemented 'read)
       (> cant-args 1) (generar-mensaje-error :wrong-number-args-prim-proc 'read)
-      :else (->> (leer-entrada)
-                 (read-string)
-                 ))))
+      :else (read-string (leer-entrada)))))
 
 
 ; user=> (fnc-sumar ())
@@ -998,6 +999,8 @@
 ; (#<void> (x 2))
 ; user=> (evaluar-define '(define (f x) (+ x 1)) '(x 1))
 ; (#<void> (x 1 f (lambda (x) (+ x 1))))
+; user=> (evaluar-define '(define (read-r) (display x) (newline)) '(x 1))
+; (#<void> (x 1 f (lambda () (display x) (newline))))
 
 ; user=> (evaluar-define '(define) '(x 1))
 ; ((;ERROR: define: missing or extra expression (define)) (x 1))
@@ -1012,13 +1015,22 @@
 ; user=> (evaluar-define '(define 2 x) '(x 1))
 ; ((;ERROR: define: bad variable (define 2 x)) (x 1))
 
+
+
+
+(defn es-lambda?
+  "Devuelve verdadero si se respeta el formato de funciones lambda"
+  [args]
+  (and (seq? (first args)) (seq? (second args))))
+
+
 (defn evaluar-define
   "Evalua una expresion `define`. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
   [expr amb]
   (let [def-params (rest expr) cant (count def-params)]
 
     (cond
-      (es-lambda? def-params) (list (symbol "#<void>") (actualizar-amb amb (first (first def-params)) (list 'lambda (rest (first def-params)) (second def-params))))
+      (es-lambda? def-params) (list (symbol "#<void>") (actualizar-amb amb (first (first def-params)) (concat '(lambda) (list (rest (first def-params))) (rest def-params))))
       (not= cant 2) (list (generar-mensaje-error :missing-or-extra 'define expr) amb)
       (not (es-variable? def-params)) (list (generar-mensaje-error :bad-variable 'define expr) amb)
       :else (list (symbol "#<void>") (actualizar-amb amb (first def-params) (second def-params))))))

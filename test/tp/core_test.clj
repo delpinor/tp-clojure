@@ -83,11 +83,6 @@
   )
 
 
-(deftest menor-o-igual-a-test
-  (testing "Devuelve #t o #f"
-    (is (= (menor-o-igual-a 4 3) (symbol "#t")))
-    (is (= (menor-o-igual-a 4 6) (symbol "#f")))))
-
 (deftest fnc-equal?-test
   (testing "Cuando son iguales"
     (is (= (fnc-equal? ()) (symbol "#t")))
