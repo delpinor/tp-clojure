@@ -809,6 +809,7 @@
     )
 )
 
+
 ; user=> (fnc-read ())
 ; (hola
 ; mundo)
@@ -998,8 +999,6 @@
 ; user=> (evaluar-define '(define (f x) (+ x 1)) '(x 1))
 ; (#<void> (x 1 f (lambda (x) (+ x 1))))
 
-;(evaluar-define '(define (sumar a b) (+ a b)) '(x 1))
-
 ; user=> (evaluar-define '(define) '(x 1))
 ; ((;ERROR: define: missing or extra expression (define)) (x 1))
 ; user=> (evaluar-define '(define x) '(x 1))
@@ -1046,11 +1045,6 @@
 ; user=> (evaluar-if '(if 1) '(n 7))
 ; ((;ERROR: if: missing or extra expression (if 1)) (n 7))
 
-(defn obtener-valor-de-amb
-    [clave ambiente] (let [indice (.indexOf ambiente clave)]
-                      (cond
-                        (= indice -1) clave
-                        :else (get (vec ambiente) (inc indice)))))
 
 (defn es-falso?[x]
   (cond
@@ -1066,17 +1060,17 @@
   (let [if-params (rest expr) cant (count if-params)]
     (cond
       (or (< cant 2) (> cant 3)) (list (generar-mensaje-error :missing-or-extra 'if expr) amb)
-      (= cant 2) (let [op1 (nth if-params 0) op2 (nth if-params 1) res1 (evaluar op1 amb) res2 (evaluar op2 amb)]
+      (= cant 2) (let [op1 (nth if-params 0) op2 (nth if-params 1) res1 (evaluar op1 amb)]
                    (cond
-                     (es-falso? (first res1)) (list  (symbol "#<void>") amb)
-                     :else res2))
+                     (not (es-falso? (first res1))) (evaluar op2 amb)
+                     :else (list  (symbol "#<void>") amb)))
                      
                    
-      (= cant 3) (let [op1 (nth if-params 0) op2 (nth if-params 1) op3 (nth if-params 2)  res1 (evaluar op1 amb) res2 (evaluar op2 amb) res3 (evaluar op3 amb)]
+      (= cant 3) (let [op1 (nth if-params 0) op2 (nth if-params 1) op3 (nth if-params 2)  res1 (evaluar op1 amb)]
                    ;(not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
                    (cond
-                     (es-falso? (first res1)) res3
-                     :else res2)))))
+                     (not (es-falso? (first res1))) (evaluar op2 amb)
+                     :else (evaluar op3 amb))))))
                      
                    
       ;; (= cant 3) (cond
@@ -1085,8 +1079,6 @@
     
   
   
-
-
 
 ; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
 ; (#f (#f #f #t #t))

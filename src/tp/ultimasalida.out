@@ -1,3 +1,5 @@
+> (enter! "demo.rkt")
+
 *****************************************************
 *                    Racket 2023                    *
 * Demo de definicion y uso de variables y funciones *
@@ -115,7 +117,7 @@ Existencia de un elemento escalar en una lista:
       ((not (list? (car l))) (or (equal? a (car l)) (existe? a (cdr l))))
       (else (or (existe? a (car l)) (existe? a (cdr l))))))
 > (existe? 'c '(a ((b) ((d c) a) e f)))
-#f
+#t
 > (existe? 'g '(a ((b) ((d c) a) e f)))
 #f
 
@@ -129,7 +131,7 @@ Eliminacion de un elemento de una lista:
 > (eliminar 'c '(a ((b) ((d c) a) c f)))
 (a ((b) ((d) a) f))
 > (eliminar '(1 2 3) '(a ((b) (((1 2 3) c) a) c f)))
-(a ((b) (((1 2 3) c) a) c f))
+(a ((b) ((c) a) c f))
 
 Profundidad de una lista:
 > (define (profundidad lista)
@@ -196,5 +198,45 @@ IOTA [retorna una lista con los primeros n numeros naturales]:
         (list n)
         (cons i (auxiota (+ i 1) n))))
 > (iota 10)
-StackOverflowError   clojure.lang.AFn.applyToHelper (AFn.java:148)
-user=> 
+(1 2 3 4 5 6 7 8 9 10)
+
+Funciones implementadas usando las funciones anteriores
+-------------------------------------------------------
+
+Sumatoria de los primeros n numeros naturales:
+> (define (sumatoria n) (reducir + (iota n)))
+> (sumatoria 100)
+5050
+[El valor esperado es 5050]
+
+Eliminacion de los elementos repetidos en una lista simple:
+> (define (eliminar-repetidos li)
+    (reverse (reducir (lambda (x y) (if (existe? x y) y (cons x y))) (reverse (cons '() li)))))
+> (eliminar-repetidos '(a b c d e f g d c h b i j))
+(a b c d e f g h i j)
+
+Seleccion del enesimo elemento de una lista dada:
+> (define (seleccionar n li)
+    (if (or (< n 1) (> n (length li)))
+        '()
+        (car (car (filtrar (lambda (x) (equal? n (car (cdr x)))) (transponer (list li (iota (length li)))))))))
+> (seleccionar 5 '(a b c d e f g h i j))
+e
+
+Aplicacion de todas las funciones de una lista a un elemento dado:
+> (define (aplicar-todas lf x)
+    (mapear (lambda (f) (f x)) lf))
+> (aplicar-todas (list length cdr car) '((3 2 1)(9 8)(7 6)(5 4)))
+(4 ((9 8) (7 6) (5 4)) (3 2 1))
+
+Entrada de datos y salida del interprete
+----------------------------------------
+
+Carga de datos desde la terminal/consola:
+> (define r 0)
+> (define (cargar-r)
+    (display "->r: ")(set! r (read))(display "r*2: ")(display (+ r r))(newline))
+> (cargar-r)
+
+Para ver el ambiente [no funciona en Racket v8.10]: (env)
+Para salir del interprete: (exit)
