@@ -156,7 +156,7 @@
 
       :else (let [res-eval-1 (evaluar (first expre) amb),
                   res-eval-2 (reduce (fn [x y] (let [res-eval-3 (evaluar y (first x))] (cons (second res-eval-3) (concat (next x) (list (first res-eval-3)))))) (cons (list (second res-eval-1)) (next expre)))]
-              (aplicar (first res-eval-1 ) (next res-eval-2) (first res-eval-2))))))
+              (aplicar (first res-eval-1) (next res-eval-2) (first res-eval-2))))))
 
 
 (defn aplicar
@@ -235,7 +235,7 @@
     ;
 
 
-    :else (generar-mensaje-error :wrong-type-apply fnc)))
+    :else (generar-mensaje-error :wrong-type-apply (spy "Error primitiva::" (list fnc lae)))))
 
 
 (defn fnc-car
@@ -600,14 +600,6 @@
 
 
 
-(defn es-variable?
-  "Devuelve verdadero si tiene el formato clave valor donde clave debe ser un simbolo y valor un numero."
-  [args]
-  (and (symbol? (first args)) (= (count args) 2)))
-
-
-
-
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE RACKET (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
 
 ; user=> (leer-entrada)
@@ -621,6 +613,7 @@
 ; (+ 1 3) 3)
 ; ;WARNING: unexpected ")"#<input-port 0>
 ; "(+ 1 3) 3)"
+
 (defn leer-entrada
   "Lee una cadena desde la terminal/consola. Si contiene parentesis de menos al presionar Enter/Intro,
   se considera que la cadena ingresada es una subcadena y el ingreso continua. De lo contrario, se la
@@ -681,7 +674,7 @@
   [ambiente clave valor] (let [indice (.indexOf (pos-impares ambiente) clave)]
                            (cond
                              (= indice -1) (concat ambiente (list clave valor))
-                             (seq? valor) ambiente
+                             ;(seq? valor) ambiente
                              :else (actualizar-valor-en-pos ambiente (inc (* indice 2)) valor))))
 
 
@@ -689,8 +682,6 @@
 ; 3
 ; user=> (buscar 'f '(a 1 b 2 c 3 d 4 e 5))
 ; (list ;ERROR: unbound variable: f)
-
-
 
 
 (defn buscar
@@ -707,6 +698,8 @@
 ; false
 ; user=> (error? (list (symbol ";WARNING:") 'mal 'hecho))
 ; true
+
+
 (defn error?
   "Devuelve true o false, segun sea o no el arg. una lista con `;ERROR:` o `;WARNING:` como primer elemento."
   [lista]
@@ -718,44 +711,54 @@
 
   
 
-
 ; user=> (proteger-bool-en-str "(or #f #t)")
 ; "(or %f %t)"
 ; user=> (proteger-bool-en-str "(and (or #f #t) #t)")
 ; "(and (or %f %t) %t)"
 ; user=> (proteger-bool-en-str "")
 ; ""
+
+
 (defn proteger-bool-en-str
   "Cambia, en una cadena, #t por %t y #f por %f, para poder aplicarle read-string."
   [cadena]
   (->
    (clojure.string/replace cadena #"#t" "%t")
-   (clojure.string/replace #"#T" "%T")
-   (clojure.string/replace #"#f" "%f")
-   (clojure.string/replace #"#F" "%F")))
+   (clojure.string/replace #"#f" "%f")))
   
+    
 
 ; user=> (restaurar-bool (read-string (proteger-bool-en-str "(and (or #F #f #t #T) #T)")))
 ; (and (or #F #f #t #T) #T)
 ; user=> (restaurar-bool (read-string "(and (or %F %f %t %T) %T)") )
 ; (and (or #F #f #t #T) #T)
 
-(defn porcentaje-por-numeral[x]
+
+(defn actualizar-cadena [lista indice nuevo-valor]
+    (concat (take indice lista) (list nuevo-valor) (drop (inc indice) lista)))
+
+
+(defn restaurar-bool-aux
+  [elem lista i]
   (cond
-    (= '%T x) (symbol "#T")
-    (= '%t x) (symbol "#t")
-    (= '%F x) (symbol "#F")
-    (= '%f x) (symbol "#f")
-    :else x))
-    
-  
+    (= elem (symbol "%f")) (actualizar-cadena lista i (symbol "#f"))
+    (= elem (symbol "%t")) (actualizar-cadena lista i (symbol "#t"))
+    :else lista))
+
 
 (defn restaurar-bool
-  "Cambia, en un codigo leido con read-string, %t por #t y %f por #f."
-  [cadena]
-  (cond
-    (seq? cadena) (map restaurar-bool cadena)
-    :else (porcentaje-por-numeral cadena)))
+    "Cambia, en un codigo leido con read-string, %t por #t y %f por #f."
+  ([cadena]
+   (cond
+     (list? cadena) (restaurar-bool 0 cadena)
+     :else cadena))
+  ([i cadena]
+   (let [longitud (count cadena)]
+     (cond
+       (and (not= i longitud) (symbol? (nth cadena i))) (restaurar-bool (+ 1 i) (restaurar-bool-aux (nth cadena i) cadena i))
+       (and (not= i longitud) (list? (nth cadena i))) (restaurar-bool (+ 1 i) (actualizar-cadena cadena i (restaurar-bool 0 (nth cadena i))))
+       :else cadena))))
+
 
 
 ; user=> (fnc-append '( (1 2) (3) (4 5) (6 7)))
@@ -808,7 +811,7 @@
   [lista]
   (cond
     (empty? lista) (convertir-a-bool true)
-    :else (convertir-a-bool (true? (apply = (spy "entra eq" lista))))
+    :else (convertir-a-bool (true? (apply = lista)))
     )
 )
 
@@ -857,8 +860,6 @@
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '+ (primer-no-numero lista))
     :else (apply + lista)))
      
-  
-
 
 ; user=> (fnc-restar ())
 ; (;ERROR: -: Wrong number of args given)
@@ -935,6 +936,8 @@
 ; (;ERROR: >: Wrong type in arg2 A)
 ; user=> (fnc-mayor '(3 2 A 1))
 ; (;ERROR: >: Wrong type in arg2 A)
+
+
 (defn fnc-mayor
   "Devuelve #t si los numeros de una lista estan en orden estrictamente decreciente; si no, #f."
   [lista]
@@ -943,8 +946,6 @@
     (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '> (primer-no-numero lista))
     :else (convertir-a-bool (apply > lista))))
     
-  
-
 
 
 ; user=> (fnc-mayor-o-igual ())
@@ -986,14 +987,16 @@
 ; ("hola" (x 6 y 11 z "hola"))
 ; user=> (evaluar-escalar 'n '(x 6 y 11 z "hola"))
 ; ((;ERROR: unbound variable: n) (x 6 y 11 z "hola"))
+
 (defn evaluar-escalar
   "Evalua una expresion escalar. Devuelve una lista con el resultado y un ambiente."
   [escalar ambiente]
   (cond
     (not (symbol? escalar)) (list escalar ambiente)
     :else (list (buscar escalar ambiente) ambiente)))
+
+
     
-  
 
 ; user=> (evaluar-define '(define x 2) '(x 1))
 ; (#<void> (x 2))
@@ -1001,6 +1004,11 @@
 ; (#<void> (x 1 f (lambda (x) (+ x 1))))
 ; user=> (evaluar-define '(define (read-r) (display x) (newline)) '(x 1))
 ; (#<void> (x 1 f (lambda () (display x) (newline))))
+
+; user=> (evaluar-define '(define (read-r x y z) (display x) (+ z y)) '(x 1))
+; (#<void> (x 1 f (lambda () (display x) (newline))))
+
+;(evaluar-define '(define (pertenece x lista) (cond ((null? lista) 9) ((equal? x (car lista)) 7) (else (pertenece x (cdr lista))))) '(x 1))
 
 ; user=> (evaluar-define '(define) '(x 1))
 ; ((;ERROR: define: missing or extra expression (define)) (x 1))
@@ -1010,30 +1018,32 @@
 ; ((;ERROR: define: missing or extra expression (define x 2 3)) (x 1))
 ; user=> (evaluar-define '(define ()) '(x 1))
 ; ((;ERROR: define: missing or extra expression (define ())) (x 1))
+
 ; user=> (evaluar-define '(define () 2) '(x 1))
 ; ((;ERROR: define: bad variable (define () 2)) (x 1))
 ; user=> (evaluar-define '(define 2 x) '(x 1))
 ; ((;ERROR: define: bad variable (define 2 x)) (x 1))
 
 
-
-
-(defn es-lambda?
-  "Devuelve verdadero si se respeta el formato de funciones lambda"
+(defn es-variable?
+  "Devuelve verdadero si tiene el formato clave valor donde clave debe ser un simbolo y valor un numero."
   [args]
-  (and (seq? (first args)) (seq? (second args))))
+  (and (symbol? (first args)) (= (count args) 2)))
 
 
 (defn evaluar-define
   "Evalua una expresion `define`. Devuelve una lista con el resultado y un ambiente actualizado con la definicion."
   [expr amb]
-  (let [def-params (rest expr) cant (count def-params)]
+  (let [def-params (rest expr) cant (count def-params) op1 (first def-params) op2 (second def-params) op3 (first (rest def-params))]
 
     (cond
-      (es-lambda? def-params) (list (symbol "#<void>") (actualizar-amb amb (first (first def-params)) (concat '(lambda) (list (rest (first def-params))) (rest def-params))))
-      (not= cant 2) (list (generar-mensaje-error :missing-or-extra 'define expr) amb)
-      (not (es-variable? def-params)) (list (generar-mensaje-error :bad-variable 'define expr) amb)
-      :else (list (symbol "#<void>") (actualizar-amb amb (first def-params) (second def-params))))))
+      (< cant 2)(list (generar-mensaje-error ':missing-or-extra 'define expr) amb)
+      (and (= 3 cant) (number? op2) (number? op3))(list (generar-mensaje-error ':missing-or-extra 'define expr) amb)
+      (and (list? op1) (empty? op1))(list (generar-mensaje-error ':bad-variable 'define expr) amb)
+      (and (not (symbol? op1)) (not (list? op1)))(list (generar-mensaje-error ':bad-variable 'define expr) amb)
+      (es-variable? def-params) (list (symbol "#<void>") (actualizar-amb amb op1 (first (evaluar op2 amb))))
+      :else (list (symbol "#<void") (actualizar-amb amb (first op1) (concat (list 'lambda (rest op1)) (rest def-params))))))) 
+
 
 
 ; user=> (evaluar-if '(if 1 2) '(n 7))
@@ -1083,13 +1093,6 @@
                    (cond
                      (not (es-falso? (first res1))) (evaluar op2 amb)
                      :else (evaluar op3 amb))))))
-                     
-                   
-      ;; (= cant 3) (cond
-      ;;              (not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
-      ;;              (es-falso? op1) (list  (obtener-valor-de-amb op3 amb) amb)))
-    
-  
   
 
 ; user=> (evaluar-or (list 'or) (list (symbol "#f") (symbol "#f") (symbol "#t") (symbol "#t")))
@@ -1158,7 +1161,6 @@
      
   
 
-
-
 ; Al terminar de cargar el archivo en el REPL de Clojure, se debe devolver true.
 true
+

@@ -14,11 +14,11 @@ Definicion de variables
 Las variables ahora estan en el ambiente.
 Evaluandolas se obtienen sus valores:
 > u
-(quote u)
+u
 > v
-(quote v)
+v
 > w
-(quote w)
+w
 
 Una vez definida una variable, con set! se le puede
 cambiar el valor:
@@ -237,6 +237,9 @@ Carga de datos desde la terminal/consola:
 > (define (cargar-r)
     (display "->r: ")(set! r (read))(display "r*2: ")(display (+ r r))(newline))
 > (cargar-r)
+->r: 3
+r*2: 6
 
 Para ver el ambiente [no funciona en Racket v8.10]: (env)
 Para salir del interprete: (exit)
+"demo.rkt"> 
