@@ -12,6 +12,25 @@
     (is (= 1 (verificar-parentesis "(hola 'mundo")))))
 
 
+(deftest todos-numeros?-test
+      (testing "Cuando son todos numeros"
+        (is (= (todos-numeros? '(1 2 3)) true)))
+      (testing "Cuando son no todos numeros"
+        (is (= (todos-numeros? '(1 a 3)) false))
+  
+  ))
+
+
+(deftest pos-pares-test
+      (testing "Posiciones pares"
+        (is (= (pos-pares '(1 2 3 4))  '(2 4))))) 
+
+
+(deftest pos-impares-test
+      (testing "Posiciones impares"
+        (is (= (pos-impares '(1 2 3 4))  '(1 3))))) 
+
+
 (deftest  actualizar-amb-test
   (testing "Actualizar con parámetros válidos"
     (is (= (actualizar-amb '(a 1 b 2 c 3) 'd 4) '(a 1 b 2 c 3 d 4)))

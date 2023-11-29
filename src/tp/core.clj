@@ -593,11 +593,10 @@
 
 (defn actualizar-valor-en-pos
   "Asigna nuevo valor en una posicion de una lista."
-  [lista, pos, valor]
+  [lista pos nuevo-valor]
   (->>
-   (assoc (vec lista) pos valor)
+   (assoc (vec lista) pos nuevo-valor)
    (seq)))
-
 
 
 ; FUNCIONES QUE DEBEN SER IMPLEMENTADAS PARA COMPLETAR EL INTERPRETE DE RACKET (ADEMAS DE COMPLETAR `EVALUAR` Y `APLICAR-FUNCION-PRIMITIVA`):
@@ -734,16 +733,12 @@
 ; (and (or #F #f #t #T) #T)
 
 
-(defn actualizar-cadena [lista indice nuevo-valor]
-    (concat (take indice lista) (list nuevo-valor) (drop (inc indice) lista)))
-
-
 (defn restaurar-bool-aux
-  [elem lista i]
+  [elem cadena i]
   (cond
-    (= elem (symbol "%f")) (actualizar-cadena lista i (symbol "#f"))
-    (= elem (symbol "%t")) (actualizar-cadena lista i (symbol "#t"))
-    :else lista))
+    (= elem (symbol "%f")) (actualizar-valor-en-pos cadena i (symbol "#f"))
+    (= elem (symbol "%t")) (actualizar-valor-en-pos cadena i (symbol "#t"))
+    :else cadena))
 
 
 (defn restaurar-bool
@@ -756,7 +751,7 @@
    (let [longitud (count cadena)]
      (cond
        (and (not= i longitud) (symbol? (nth cadena i))) (restaurar-bool (+ 1 i) (restaurar-bool-aux (nth cadena i) cadena i))
-       (and (not= i longitud) (list? (nth cadena i))) (restaurar-bool (+ 1 i) (actualizar-cadena cadena i (restaurar-bool 0 (nth cadena i))))
+       (and (not= i longitud) (list? (nth cadena i))) (restaurar-bool (+ 1 i) (actualizar-valor-en-pos cadena i (restaurar-bool 0 (nth cadena i))))
        :else cadena))))
 
 
