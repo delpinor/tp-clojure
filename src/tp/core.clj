@@ -84,8 +84,6 @@
 (declare convertir-a-bool)
 (declare operar-or)
 (declare todos-numeros?)
-(declare menor-o-igual-a)
-(declare es-lambda?)
 (declare es-variable?)
 
 
@@ -576,7 +574,8 @@
    (first)))
 
 (defn convertir-a-bool
-  "Devuelve el valor negado del booleano. Si es numero devuelve el mismo."
+  "Devuelve el valor booleando equivalente. Devuelve true por #t y #t por true. Lo mismo para falsos
+   Si no es booleando devuelve el mismo."
   [x] 
   (cond
     (= true x)(symbol "#t")
@@ -1021,7 +1020,7 @@
 
 
 (defn es-variable?
-  "Devuelve verdadero si tiene el formato clave valor donde clave debe ser un simbolo y valor un numero."
+  "Devuelve verdadero si tiene el formato clave-valor, es decir tamaño 2 y el primer argumento debe ser un símbolo."
   [args]
   (and (symbol? (first args)) (= (count args) 2)))
 
@@ -1071,7 +1070,6 @@
     
   
 
-
 (defn evaluar-if
    [expr amb]
   (let [if-params (rest expr) cant (count if-params)]
@@ -1084,7 +1082,6 @@
                      
                    
       (= cant 3) (let [op1 (nth if-params 0) op2 (nth if-params 1) op3 (nth if-params 2)  res1 (evaluar op1 amb)]
-                   ;(not (es-falso? op1)) (list  (obtener-valor-de-amb op2 amb) amb)
                    (cond
                      (not (es-falso? (first res1))) (evaluar op2 amb)
                      :else (evaluar op3 amb))))))
