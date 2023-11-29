@@ -20,6 +20,39 @@
   
   ))
 
+(deftest convertir-a-bool-test
+      (testing "Cuando es booleano"
+        (is (= (convertir-a-bool true) (symbol "#t"))) 
+        (is (= (convertir-a-bool (symbol "#t")) true))
+        (is (= (convertir-a-bool (symbol "#f")) false))
+        (is (= (convertir-a-bool false) (symbol "#f"))) 
+        )
+  
+      (testing "Cuando no es booleano"
+        (is (= (convertir-a-bool 3) 3)))
+  
+  ) 
+
+(deftest primer-no-numero-test
+      (testing "Devuelve el primer elemento no numero"
+        (is (= (primer-no-numero '(1 2  b 3)) 'b)))
+        (is (= (primer-no-numero '(1 2 3 3)) nil))
+  ) 
+
+(deftest es-variable?-test
+      (testing "Si el primer elemento simbolo"
+        (is (= (es-variable? '(1 2)) false)))
+        (is (= (es-variable? '(x 2)) true))
+  ) 
+
+(deftest es-falso?-test
+      (testing "Elemento es falso"
+        (is (= (es-falso? (symbol "#f")) true)))
+        (is (= (es-falso? 4) false))
+  
+      (testing "Elemento no es falso"
+        (is (= (es-falso? (symbol "#t")) false)))
+  ) 
 
 (deftest pos-pares-test
       (testing "Posiciones pares"
