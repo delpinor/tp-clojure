@@ -1,6 +1,6 @@
-(ns tp.core
-  (:gen-class) 
-  (:require [clojure.string :as str]))
+;; (ns tp.core
+;;   (:gen-class) 
+;;   (:require [clojure.string :as str]))
 
 (require '[clojure.string :as st :refer [blank? starts-with? ends-with? lower-case]]
          '[clojure.java.io :refer [delete-file reader]]
@@ -55,6 +55,12 @@
 (declare fnc-reverse)
 (declare fnc-mayor-o-igual)
 
+(declare fnc-max)
+(declare fnc-min)
+(declare fnc-producto)
+(declare fnc-remove)
+(declare fnc-member)
+
 ; Funciones auxiliares
 
 (declare buscar)
@@ -97,7 +103,8 @@
                'if 'if 'lambda 'lambda 'length 'length 'list 'list 'list? 'list?
                'newline 'newline 'nil (symbol "#f") 'not 'not 'null? 'null? 'or 'or 'quote 'quote
                'read 'read 'reverse 'reverse 'set! 'set! (symbol "#f") (symbol "#f")
-               (symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>=) ""))
+               (symbol "#t") (symbol "#t") '+ '+ '- '- '< '< '> '> '>= '>= 
+               'max 'max 'min 'min '* '* 'remove 'remove 'member 'member) ""))
   ([amb ns]
    (if (empty? ns) (print ns) (pr ns)) (print "> ") (flush)
    (try
@@ -228,12 +235,75 @@
     (= fnc 'cons) (fnc-cons lae)
     (= fnc 'cdr) (fnc-cdr lae)
     (= fnc 'car) (fnc-car lae)
+
+    ;
+    (= fnc  'max) (fnc-max lae)
+    (= fnc  'min) (fnc-min lae)
+    (= fnc '*) (fnc-producto lae)
+    (= fnc 'remove) (fnc-remove lae)
+    (= fnc 'member) (fnc-member lae)
     ;
     ; COMPLETAR
     ;
 
 
     :else (generar-mensaje-error :wrong-type-apply (spy "Error primitiva::" (list fnc lae)))))
+
+
+(defn reducir-con-primitiva
+  [fnc lista]
+  (reduce fnc lista))
+
+
+(defn fnc-max
+  [lista]
+    (reducir-con-primitiva max lista
+    )
+  )
+
+
+(defn fnc-min
+  [lista]
+  (reducir-con-primitiva min lista)
+  )
+
+(defn fnc-producto
+  [lista]
+  (reducir-con-primitiva * lista)
+  )
+
+; (fnc-remove '(4 (1 4 3 4 5)))
+; (fnc-remove '(9 (1 4 3 4 5)))
+(defn fnc-remove
+  "Elimina de la lista la primer ocurrencia del elemento buscado."
+  [lista]
+  (let [op1 (first lista) op2 (first (rest lista))]
+    (cond
+      (not (seq? lista)) (generar-mensaje-error :wrong-type-arg2 'remove op2)
+      :else (concat (take-while (partial not= op1) op2) (rest (drop-while (partial not= op1) op2)))
+    )
+  )
+)
+
+; (fnc-member '(4 (1 3 4 5 6)))
+;(4 5 6)
+; (fnc-member '(7 (1 3 4 5 6)))
+; #f
+(defn fnc-member
+  "Devuelve la lista a partir del elemento buscado, falso de lo contrario"
+  [lista]
+  (let [op1 (first lista) op2 (first (rest lista)) res (drop-while (partial not= op1) op2)]
+    (cond
+      (not (seq? op2)) (generar-mensaje-error :wrong-type-arg2 'member op2)
+      (empty? res) (convertir-a-bool false)
+      :else res
+      )
+    )
+  )
+
+
+
+
 
 
 (defn fnc-car
@@ -968,8 +1038,7 @@
   (cond
    (empty? lista) (convertir-a-bool true)
    (not (todos-numeros? lista)) (generar-mensaje-error :wrong-type-arg '>= (primer-no-numero lista))
-   :else (convertir-a-bool (apply >= lista))))
-  
+   :else (convertir-a-bool (apply >= lista))))  
 
 ; user=> (evaluar-escalar 32 '(x 6 y 11 z "hola"))
 ; (32 (x 6 y 11 z "hola"))
